@@ -5,9 +5,14 @@
 @inject MouseHookService HookService
 @implements IDisposable
 
-<h3>Server-Side Mouse Hook</h3>
+<h3>Server-Side Mouse Hook (Spacebar)</h3>
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+
+    <button type="button" class="btn btn-primary" disabled="@(HookService.IsActive)"
+            @onclick="() => AddRow()">
+        ➕ Add
+    </button>
 
     <button class="btn btn-success" @onclick="async () => await StartHook()" disabled="@HookService.IsActive">
         ▶ Start
@@ -109,18 +114,20 @@
 
 <!-- ✅ Radio Group -->
 <div class="d-flex align-items-center gap-2 radio-group">
-    <input type="radio" name="position"
+    <input type="radio" id="posTopLeft" name="position"
            value="TopLeft"
            checked="@(Position == "TopLeft")"
            @onchange='() => Position = "TopLeft"' />
-    <label>Top Left</label>
+    <label for="posTopLeft">Top Left</label>
 
-    <input type="radio" name="position"
+    <input type="radio" id="posBotRight" name="position"
            value="BotRight"
            checked="@(Position == "BotRight")"
            @onchange='() => Position = "BotRight"' />
-    <label>Bot Right</label>
+    <label for="posBotRight">Bot Right</label>
 </div>
+
+
 <table class="table table-bordered table-sm" style="max-width: 300px;">
     <thead><tr><th>#</th><th>X</th><th>Y</th></tr></thead>
     <tbody>
@@ -297,7 +304,25 @@
         HookService.OnSpacePressed += HandleSpacePressed;
     }
 
-
+    void AddRow()
+    {
+        Items.Add(new ImageStepModel
+        {
+            BaseImage = ImageCapture.Default,
+            CurrentFromScreenSmallToCompare = ImageCapture.Default,
+            TopLeftX = 10,
+            TopLeftY = 20,
+            BotRightX = 100,
+            BotRightY = 200,
+            Interval = 5,
+            AfterClick = 0,
+            ReCheckInterval = 2,
+            NextStepFound = 0,
+            NextStepNotFound = 0,
+            Active = true,
+            FourceStopLoop = false
+        });
+    }
     private async Task StartHook()
     {
         await InvokeAsync(StateHasChanged);

@@ -25,7 +25,7 @@
         //     audio.play().catch(e => console.warn("Audio play failed:", e));
         // };
 
-        window.playJingle = (url, volume = 1.0) => {
+        window.playJingle = (url, volume = 0.5) => {
             const audio = new Audio(url);
             audio.volume = volume; // 0.0 (เงียบ) → 1.0 (ดังสุด)
             audio.play().catch(e => console.warn("Audio play failed:", e));
@@ -36,10 +36,10 @@
             ctx.resume();
         };
 
-        window.playJingle = (url) => {
-            const audio = new Audio(url);
-            audio.play().catch(e => console.warn("Blocked:", e));
-        };
+        // window.playJingle = (url) => {
+        //     const audio = new Audio(url);
+        //     audio.play().catch(e => console.warn("Blocked:", e));
+        // };
     </script>
 
 </body>

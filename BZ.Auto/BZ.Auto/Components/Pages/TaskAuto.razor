@@ -1,4 +1,4 @@
-﻿<h3>TaskAuto</h3>
+﻿<h3>Task Auto</h3>
 @using BZ.Auto.Models
 @using System.Threading.Tasks
 @using BZ.Auto.Service
@@ -7,58 +7,102 @@
 @inject IJSRuntime JS
 
 @page "/task-auto"
- 
 
-<div class="container">
-    <div class="row g-2 align-items-center">
-         
 
-        <!-- ปุ่ม -->
-        <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
 
-            <span>Round</span>
 
-            <input type="number" class="form-control input-sm"
-                   value="@RoundMax" min="1" max="500" />
+<!-- ปุ่ม -->
+<div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
+    @*  <div class="volume-selector">
+                <div class="btn-group">
+                    <div class="vol-wrap">
+                        <button class="vol-btn @(Volume == 1 ? "active" : "")"
+                                @onclick="() => SetVolume(1)">
+                            &#128266;
+                        </button>
+                        <span class="vol-label">1</span>
+                    </div>
 
-            <span>/</span>
+                    <div class="vol-wrap">
+                        <button class="vol-btn @(Volume == 0.5 ? "active" : "")"
+                                @onclick="() => SetVolume(0.5)">
+                            &#128265;
+                        </button>
+                        <span class="vol-label">0.5</span>
+                    </div>
 
-            <input type="number" class="form-control input-sm"
-                   value="@RoundRunning" readonly/>
+                    <div class="vol-wrap">
+                        <button class="vol-btn @(Volume == 0 ? "active" : "")"
+                                @onclick="() => SetVolume(0)">
+                            &#128264;
+                        </button>
+                        <span class="vol-label">0</span>
+                    </div>
+                </div>
 
-            <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
-                    @onclick="() => AddRow()">
-                ➕ Add
-            </button>
+                <p>ค่าระดับเสียง: <strong>@Volume</strong></p>
+                 
+                @if (Volume == 1)
+                {
+                    <p>เสียงดังเต็มที่</p>
+                }
+                else if (Volume == 0.5)
+                {
+                    <p>เสียงระดับกลาง</p>
+                }
+                else if (Volume == 0)
+                {
+                    <p>ปิดเสียง</p>
+                }
+            </div> *@
 
-            <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
-                    @onclick="async () => await OnStartAutoAsync()">
-                🔄 Start
-            </button>
-
-            <button type="button" class="btn btn-danger" disabled="@(!isStartLoop)"
-                    @onclick="async () => await OnStopAutoAsync()">
-                ❌ Stop
-            </button>
-
-            <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
-                    @onclick="async () => await OnLoadAsync()">
-                📂 Load
-            </button>
-
-            <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
-                    @onclick="async () => await OnSaveAsync()">
-                💾 Save
-            </button>
-
-            <input type="text" class="form-control input-name"
-                   @bind="tableName" @bind:event="oninput" />
-
-        </div>
-
+    <div class="vol-wrap">
+        <button class="vol-btn" @onclick="Cycle">@_currentVolumn.Icon</button>
+        <span class="vol-desc">@_currentVolumn.Desc</span>
     </div>
+
+
+    <span>Round</span>
+
+    <input type="number" class="form-control input-sm"
+           value="@RoundMax" min="1" max="5000" step="1" />
+
+    <span>/</span>
+
+    <input type="number" class="form-control input-sm"
+           value="@RoundRunning" readonly />
+
+    <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
+            @onclick="() => AddRow()">
+        ➕ Add
+    </button>
+
+    <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
+            @onclick="async () => await OnStartAutoAsync()">
+        🔄 Start
+    </button>
+
+    <button type="button" class="btn btn-danger" disabled="@(!isStartLoop)"
+            @onclick="async () => await OnStopAutoAsync()">
+        ❌ Stop
+    </button>
+
+    <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
+            @onclick="async () => await OnLoadAsync()">
+        📂 Load
+    </button>
+
+    <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
+            @onclick="async () => await OnSaveAsync()">
+        💾 Save
+    </button>
+
+    <input type="text" class="form-control input-name"
+           @bind="tableName" @bind:event="oninput" />
+
 </div>
-<br />
+
+
 <br />
 
 
@@ -78,10 +122,10 @@
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                     display: block;
-                                     width: 600px;
-                                     max-height: 800px;
-                                     object-fit: contain;" />
+                                         display: block;
+                                         width: 600px;
+                                         max-height: 800px;
+                                         object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -148,14 +192,14 @@
         <tr>
             <th>Step</th>
             <th>BaseImage</th>
-            <th>CurrentFromScreen</th>
+            <th>Current From Screen</th>
             <th>TopLeftX</th>
             <th>TopLeftY</th>
             <th>BotRightX</th>
             <th>BotRightY</th>
-            <th>Interval (sec)</th>
-            <th>AfterClickInterval (sec)</th>
-            <th>ReCheckInterval (Count)</th>
+            <th>Before Click Interval (sec)</th>
+            <th>After Click Interval (sec)</th>
+            <th>ReCheck NotFound (Count)</th>
             <th>NextStep (Found)</th>
             <th>NextStep (NotFound)</th>
             <th>Active</th>
@@ -181,7 +225,7 @@
                            value="@item.BaseImage"
                            @onchange="e => OnChanged(item, nameof(item.BaseImage), e.Value)" /> *@ 
                    
-                                                            @* <img src="@GetImageSrc(item.BaseImage)"
+                                                                @* <img src="@GetImageSrc(item.BaseImage)"
                          width="200" height="50"
                          style="cursor:pointer"
                          @onclick="() => OnImageClick(item)" @onclick:stopPropagation="true" /> *@
@@ -244,16 +288,15 @@
                            value="@pair.item.ReCheckInterval"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.ReCheckInterval), e.Value)" />
                 </td>
-
-                <!-- string -->
+                 
                 <td>
-                    <input class="form-control"
+                    <input type="number" class="form-control"
                            value="@pair.item.NextStepFound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepFound), e.Value)" />
                 </td>
 
                 <td>
-                    <input class="form-control"
+                    <input type="number" class="form-control"
                            value="@pair.item.NextStepNotFound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepNotFound), e.Value)" />
                 </td>
@@ -281,10 +324,35 @@
 
 
 @code {
+
+    // public double Volume { get; set; } = 0.5;
+
+    // private void SetVolume(double value)
+    // {
+    //     Volume = value;
+    // }
+    record VolumeStep(string Icon, string Desc, double Value);
+
+    private readonly VolumeStep[] _steps =
+    [
+        new("🔊", "เสียงเต็ม",  1),
+        new("🔉", "เสียงกลาง", 0.5),
+        new("🔈", "ปิดเสียง",   0),
+    ];
+
+    private int _idx = 0;
+    private VolumeStep _currentVolumn => _steps[_idx];
+
+    private void Cycle()
+    {
+        _idx = (_idx + 1) % _steps.Length;
+    }
+
+
     public string tableName = "ImageSteps";
     int processNumber = 0;
-    int RoundRunning = 10;
-    int RoundMax = 10; 
+    int RoundRunning = 1;
+    int RoundMax = 100;
     protected override async Task OnInitializedAsync()
     {
         // mock delay (เช่นโหลดจาก API)
@@ -309,6 +377,15 @@
                 FourceStopLoop = false
             }
         };
+        RoundRunning = RoundMax;
+        try
+        {
+            await OnLoadAsync();
+        }
+        catch
+        {
+
+        }
     }
     void Remove(ImageStepModel item)
     {
@@ -319,7 +396,7 @@
         Items.Add(new ImageStepModel
         {
             BaseImage = ImageCapture.Default,
-            CurrentFromScreenSmallToCompare = ImageCapture.Default ,
+            CurrentFromScreenSmallToCompare = ImageCapture.Default,
             TopLeftX = 10,
             TopLeftY = 20,
             BotRightX = 100,
@@ -341,8 +418,7 @@
             // await PlayJingleAsync(0.5);  // 50%
             // await PlayJingleAsync(0.2);  // เบามาก
             // await PlayJingleAsync(1.0);  // ดังสุด (default)
-            double volume = 0.3;
-            await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", volume);
+            await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", _currentVolumn.Value);
         }
         catch (Exception ex)
         {
@@ -393,15 +469,14 @@
                     // await OnStopAutoAsync();
                 }
 
-               
+
                 if (Items[processNumber].FourceStopLoop == true)
                 {
                     RoundRunning = 0;
                     processRecheckIfNotFound = 0;
                     processNumber = 0;
                     await OnStopAutoAsync();
-                    double volume = 0.3;
-                    await JS.InvokeVoidAsync("playJingle", "sounds/danger-alert.mp3", volume);
+                    await JS.InvokeVoidAsync("playJingle", "sounds/danger-alert.mp3", _currentVolumn.Value);
                     return;
                 }
 
@@ -580,10 +655,10 @@
     void OnIndexClick(ImageStepModel item, int index)
     {
         processNumber = index;
-        ShowImageModal(GetImageSrc(item.CaptureWholeScreenImage)); 
+        ShowImageModal(GetImageSrc(item.CaptureWholeScreenImage));
     }
     void OnImageClick(ImageStepModel item)
-    {  
+    {
         // // byte[] → base64
         // string base64 = Convert.ToBase64String(bytes);
 
@@ -591,7 +666,7 @@
         // byte[] back = Convert.FromBase64String(base64);
 
         // ใช้ได้
-        // // // // var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY); 
+        // // // // var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY);
         // // // // item.BaseImage = Convert.ToBase64String(imageRegion);
         ShowImageModal(GetImageSrc(item.BaseImage));
 
@@ -685,7 +760,7 @@
         try
         {
             await Task.Delay(300, _ctsHandleAfterChange.Token); // debounce
-             
+
             bool isAllowEdit = true;
             if (isAllowEdit)
             {
