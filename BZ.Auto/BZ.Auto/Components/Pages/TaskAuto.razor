@@ -131,10 +131,10 @@
     </div>
 
 
-    <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
+    @* <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
 
     <input type="number" class="form-control" style="width:80px"
-           @bind="intervalLoop" @bind:event="oninput" min="100" />
+           @bind="intervalLoop" @bind:event="oninput" min="100" /> *@
 
 </div>
 
@@ -534,7 +534,7 @@
     }
 
 
-    int intervalLoop = 100;
+    int intervalLoop = 300;
     int processRecheckIfNotFound = 0;
     int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
