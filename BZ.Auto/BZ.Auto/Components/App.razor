@@ -1,0 +1,47 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/task-auto" />
+    <ResourcePreloader />
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap-icons.min.css"]" />
+    <link rel="stylesheet" href="@Assets["lib/bootstrap/dist/css/bootstrap.min.css"]" />
+    <link rel="stylesheet" href="@Assets["app.css"]" />
+    <link rel="stylesheet" href="@Assets["BZ.Auto.styles.css"]" />
+    <ImportMap />
+    <link rel="icon" type="image/png" href="favicon.png" />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <ReconnectModal />
+    <script src="@Assets["_framework/blazor.web.js"]"></script>
+    <script>
+        // window.playJingle = (url) => {
+        //     const audio = new Audio(url);
+        //     audio.play().catch(e => console.warn("Audio play failed:", e));
+        // };
+
+        window.playJingle = (url, volume = 1.0) => {
+            const audio = new Audio(url);
+            audio.volume = volume; // 0.0 (เงียบ) → 1.0 (ดังสุด)
+            audio.play().catch(e => console.warn("Audio play failed:", e));
+        };
+
+        window.unlockAudio = () => {
+            const ctx = new AudioContext();
+            ctx.resume();
+        };
+
+        window.playJingle = (url) => {
+            const audio = new Audio(url);
+            audio.play().catch(e => console.warn("Blocked:", e));
+        };
+    </script>
+
+</body>
+
+</html>

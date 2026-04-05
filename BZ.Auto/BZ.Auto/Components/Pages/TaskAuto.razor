@@ -1,0 +1,668 @@
+﻿<h3>TaskAuto</h3>
+@using BZ.Auto.Models
+@using System.Threading.Tasks
+@using BZ.Auto.Service
+@using Microsoft.Data.Sqlite;
+@rendermode InteractiveServer
+@inject IJSRuntime JS
+
+@page "/task-auto"
+ 
+
+<div class="container">
+    <div class="row g-2 align-items-center">
+         
+
+        <!-- ปุ่ม -->
+        <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
+
+            <span>Round</span>
+
+            <input type="number" class="form-control input-sm"
+                   value="@RoundCount" readonly />
+
+            <span>/</span>
+
+            <input type="number" class="form-control input-sm"
+                   value="@Round" min="1" max="500" />
+
+            <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
+                    @onclick="() => AddRow()">
+                ➕ Add
+            </button>
+
+            <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
+                    @onclick="async () => await OnStartAutoAsync()">
+                🔄 Start
+            </button>
+
+            <button type="button" class="btn btn-danger" disabled="@(!isStartLoop)"
+                    @onclick="async () => await OnStopAutoAsync()">
+                ❌ Stop
+            </button>
+
+            <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
+                    @onclick="async () => await OnLoadAsync()">
+                📂 Load
+            </button>
+
+            <button type="button" class="btn btn-success" disabled="@(isStartLoop)"
+                    @onclick="async () => await OnSaveAsync()">
+                💾 Save
+            </button>
+
+            <input type="text" class="form-control input-name"
+                   @bind="tableName" @bind:event="oninput" />
+
+        </div>
+
+    </div>
+</div>
+<br />
+<br />
+
+
+
+@if (isModalOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered"
+             style="width: fit-content; max-width: 95vw; margin: auto;">
+            <div class="modal-content" style="width: fit-content;">
+
+                <button type="button" class="btn-close"
+                        @onclick="CloseModal"
+                        style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                </button>
+
+                <div class="modal-body p-0">
+                    <img src="@currentImage"
+                         style="
+                                     display: block;
+                                     width: 600px;
+                                     max-height: 800px;
+                                     object-fit: contain;" />
+                </div>
+
+                <div class="modal-footer justify-content-center py-2">
+                    <button class="btn btn-secondary btn-sm" @onclick="CloseModal">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div>
+    @*  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-dialog-centered"
+                     style="width: fit-content; max-width: 95vw; margin: auto;">
+                    <div class="modal-content" style="width: fit-content;">
+                         
+                        <button type="button" class="btn-close"
+                                @onclick="CloseModal"
+                                style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                        </button>
+
+                        <div class="modal-body p-0">
+                            <img src="@currentImage"
+                                 class="d-block"
+                                 style="max-width: 95vw; max-height: 80vh; object-fit: contain;" />
+                        </div>
+
+                        <div class="modal-footer justify-content-center py-2">
+                            <button class="btn btn-secondary btn-sm" @onclick="CloseModal">
+                                Close
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+            </div> *@
+    @* <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+                <div class="modal-dialog modal-dialog-centered modal-lg">
+                    <div class="modal-content">
+
+                        <div class="modal-header">
+                            <h5 class="modal-title">Preview</h5>
+                            <button type="button" class="btn-close" @onclick="CloseModal"></button>
+                        </div>
+
+                        <div class="modal-body text-center">
+                            <img src="@currentImage" class="img-fluid" />
+                        </div>
+
+                        <div class="modal-footer">
+                            <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
+                        </div>
+
+                    </div>
+                </div>
+            </div> *@
+}
+
+
+<br />
+<table class="table table-bordered">
+
+    <thead>
+        <tr>
+            <th>Step</th>
+            <th>BaseImage</th>
+            <th>CurrentFromScreen</th>
+            <th>TopLeftX</th>
+            <th>TopLeftY</th>
+            <th>BotRightX</th>
+            <th>BotRightY</th>
+            <th>Interval (sec)</th>
+            <th>AfterClickInterval (sec)</th>
+            <th>ReCheckInterval (Count)</th>
+            <th>NextStep (Found)</th>
+            <th>NextStep (NotFound)</th>
+            <th>Active</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var pair in Items.Select((item, index) => new { item, index }))
+        {
+            @* <tr style="@(processNumber == pair.index ? "background-color: #d0ebff !important;" : "")"> *@
+            <tr class="@(processNumber == pair.index ? pair.item.IsFound == true ? "row-selected" : "row-selected-error" : "")">
+                <td>
+                    <button type="button" @onclick="() => OnIndexClick(pair.item, pair.index)" style="border:none; background:none; padding:0;">
+                        @pair.index
+                    </button>
+
+                </td>
+
+                <!-- BaseImage -->
+                <td>
+                    @* <input class="form-control"
+                           value="@item.BaseImage"
+                           @onchange="e => OnChanged(item, nameof(item.BaseImage), e.Value)" /> *@ 
+                   
+                                                            @* <img src="@GetImageSrc(item.BaseImage)"
+                         width="200" height="50"
+                         style="cursor:pointer"
+                         @onclick="() => OnImageClick(item)" @onclick:stopPropagation="true" /> *@
+
+                    <button type="button" @onclick="() => OnImageClick(pair.item)" style="border:none; background:none; padding:0;">
+                        <img src="@GetImageSrc(pair.item.BaseImage)" width="200" height="50" style="cursor:pointer" />
+                    </button>
+
+                </td>
+
+                <!-- CurrentFromScreen -->
+                <td>
+                    @* <input class="form-control"
+                           value="@item.CurrentFromScreen"
+                           @onchange="e => OnChanged(item, nameof(item.CurrentFromScreen), e.Value)" /> *@
+
+                    <img src="@GetImageSrc(pair.item.CurrentFromScreenSmallToCompare)" @onclick="() => OnImageScreenClick(pair.item)"
+                         width="200" height="50" />
+                </td>
+
+                <!-- int fields -->
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.TopLeftX"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftX), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.TopLeftY"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftY), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.BotRightX"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightX), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.BotRightY"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightY), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.Interval"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.Interval), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.AfterClick"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.AfterClick), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.ReCheckInterval"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.ReCheckInterval), e.Value)" />
+                </td>
+
+                <!-- string -->
+                <td>
+                    <input class="form-control"
+                           value="@pair.item.NextStepFound"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepFound), e.Value)" />
+                </td>
+
+                <td>
+                    <input class="form-control"
+                           value="@pair.item.NextStepNotFound"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepNotFound), e.Value)" />
+                </td>
+
+                <!-- bool -->
+                <td class="text-center">
+                    <input type="checkbox"
+                           checked="@pair.item.Active"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.Active), e.Value)" />
+                </td>
+
+                <td>
+                    <button class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item)">Delete</button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+
+@code {
+    public string tableName = "ImageSteps";
+    int processNumber = 0;
+    int Round = 10;
+    int RoundCount = 1; 
+    protected override async Task OnInitializedAsync()
+    {
+        // mock delay (เช่นโหลดจาก API)
+        await Task.Delay(100);
+
+        Items = new List<ImageStepModel>
+        {
+            new ImageStepModel
+            {
+                BaseImage = ImageCapture.Default,
+                CurrentFromScreenSmallToCompare = ImageCapture.Default,
+                TopLeftX = 10,
+                TopLeftY = 20,
+                BotRightX = 100,
+                BotRightY = 200,
+                Interval = 5,
+                AfterClick = 0,
+                ReCheckInterval = 2,
+                NextStepFound = 0,
+                NextStepNotFound = 0,
+                Active = true
+            }
+        };
+    }
+    void Remove(ImageStepModel item)
+    {
+        Items.Remove(item);
+    }
+    void AddRow()
+    {
+        Items.Add(new ImageStepModel
+        {
+            BaseImage = ImageCapture.Default,
+            CurrentFromScreenSmallToCompare = ImageCapture.Default ,
+            TopLeftX = 10,
+            TopLeftY = 20,
+            BotRightX = 100,
+            BotRightY = 200,
+            Interval = 5,
+            AfterClick = 0,
+            ReCheckInterval = 2,
+            NextStepFound = 0,
+            NextStepNotFound = 0,
+            Active = true
+        });
+    }
+
+    private async Task PlayJingleAsync()
+    {
+        try
+        {
+            // await PlayJingleAsync(0.5);  // 50%
+            // await PlayJingleAsync(0.2);  // เบามาก
+            // await PlayJingleAsync(1.0);  // ดังสุด (default)
+            double volume = 0.3;
+            await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", volume);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Sound error: {ex.Message}");
+        }
+    }
+
+    int processRecheckIfNotFound = 0;
+    int processRecheckIfNotFoundMax = 3;
+    bool isStartLoop = false;
+    CancellationTokenSource _cts;
+    async Task OnStartAutoAsync()
+    {
+        await JS.InvokeVoidAsync("unlockAudio");
+
+        var intervalLoop = 300;
+        int RandomIntBetween = 0;
+        int timeCount = 0;
+        processRecheckIfNotFound = 0;
+        Console.ForegroundColor = ConsoleColor.Green;
+        Console.WriteLine("Start");
+        Console.ResetColor();
+        processNumber = 0;
+        RoundCount = Round;
+        isStartLoop = true;
+        DateTime startTime = DateTime.Now;
+        _cts = new CancellationTokenSource();
+
+        List<string> messages = new List<string>();
+        while (!_cts.Token.IsCancellationRequested && isStartLoop)
+        {
+            try
+            {
+                await InvokeAsync(StateHasChanged);
+
+                Console.WriteLine();
+                Console.WriteLine("Time:" + DateTime.Now);
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"Process :{processNumber} | Round {RoundCount} / {Round}");
+                Console.ResetColor();
+                //ปิดเครื่องนอน วอจบแล้ว
+                if (DateTime.Now.Hour > 22)
+                {
+                    //var psi = new ProcessStartInfo("shutdown", "/s /t 0");
+                    //psi.CreateNoWindow = true;
+                    //psi.UseShellExecute = false;
+                    //Process.Start(psi);
+                    // await OnStopAutoAsync();
+                }
+
+
+                // Console.WriteLine("Check RoundCount");
+                if (RoundCount <= 0)
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    Console.WriteLine($"Process {processNumber} : RoundCount <= 0");
+                    Console.ResetColor();
+                    await OnStopAutoAsync();
+                }
+
+                // Console.WriteLine("Check processNumber");
+                if (processNumber >= Items.Count())
+                {
+                    Console.ForegroundColor = ConsoleColor.DarkYellow;
+                    Console.WriteLine($"Process {processNumber} : processNumber >= Items.Count()");
+                    Console.ResetColor();
+                    processRecheckIfNotFound = 0;
+                    processNumber = 0;
+                    RoundCount--;
+                    RandomIntBetween = 0;
+                    timeCount = 0;
+                    continue;
+                }
+
+                // Console.WriteLine("Check Recheck");
+                if (processRecheckIfNotFound > Items[processNumber].ReCheckInterval)
+                {
+                    Console.ForegroundColor = ConsoleColor.Magenta;
+                    Console.WriteLine($"Process {processNumber} : processRecheckIfNotFound > processRecheckIfNotFoundMax");
+                    Console.ResetColor();
+                    processNumber = Items[processNumber].NextStepNotFound;
+
+                    processRecheckIfNotFound = 0;
+                    RandomIntBetween = 0;
+                    timeCount = 0;
+                    continue;
+                }
+
+
+                if (RandomIntBetween == 0)
+                {
+                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2);
+
+                }
+                var isStillWaitForInterval = timeCount <
+                    MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].Interval) +
+                    RandomIntBetween;
+
+                // Console.WriteLine("Check isStillWaitForInterval");
+                if (isStillWaitForInterval)
+                {
+                    await Task.Delay(intervalLoop);
+                    timeCount += intervalLoop;
+
+                    continue;
+                }
+
+
+                await Task.Delay(100);
+                Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
+
+                Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
+                if (Items[processNumber].IsFound)
+                {
+                    await PlayJingleAsync();
+                    var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
+                    MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
+                    await MouseOperationsService.LeftMouseClick();
+                    await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+                    processNumber = Items[processNumber].NextStepFound;
+
+                    processRecheckIfNotFound = 0;
+                    RandomIntBetween = 0;
+                    timeCount = 0;
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"not found Process: {processNumber} | Recheck {processRecheckIfNotFound}");
+                    Console.ResetColor();
+                    // await OnStopAutoAsync();
+                    processRecheckIfNotFound++;
+                }
+
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.DarkRed;
+                Console.WriteLine("Error");
+                Console.WriteLine(ex);
+                Console.ResetColor();
+                await OnStopAutoAsync();
+            }
+
+            await Task.Delay(intervalLoop);
+            timeCount += intervalLoop;
+
+        }
+    }
+    async Task OnSaveAsync()
+    {
+        if (Items.Count == 1)
+        {
+            return;
+        }
+        await SQLiteContext.InsertImageStep(Items, tableName);
+
+    }
+    async Task OnLoadAsync()
+    {
+        Items = await SQLiteContext.GetAll(tableName);
+    }
+    async Task OnStopAutoAsync()
+    {
+        isStartLoop = false;
+        Console.ForegroundColor = ConsoleColor.Red;
+        Console.WriteLine("Stop");
+        Console.ResetColor();
+        _cts?.Cancel();
+    }
+
+    private List<ImageStepModel> Items = new()
+    {
+        new ImageStepModel
+        {
+            BaseImage = "https://via.placeholder.com/80",
+            CurrentFromScreenSmallToCompare = "https://via.placeholder.com/80/ff0000",
+            TopLeftX = 10,
+            TopLeftY = 20,
+            BotRightX = 100,
+            BotRightY = 200,
+            Interval = 5,
+            AfterClick = 0,
+            ReCheckInterval = 2,
+            NextStepFound =0,
+            NextStepNotFound = 0,
+            Active = true
+        }
+    };
+    string GetImageSrc(string base64)
+    {
+        if (string.IsNullOrEmpty(base64)) return "";
+
+        if (base64.StartsWith("data:"))
+            return base64;
+
+        return $"data:image/png;base64,{base64}";
+    }
+    private bool isModalOpen = false;
+    private string currentImage = "";
+
+    void ShowImageModal(string base64)
+    {
+        currentImage = base64;
+        isModalOpen = true;
+    }
+
+    void CloseModal()
+    {
+        isModalOpen = false;
+    }
+    void OnImageScreenClick(ImageStepModel item)
+    {
+        ShowImageModal(GetImageSrc(item.CurrentFromScreenSmallToCompare));
+    }
+
+    void OnIndexClick(ImageStepModel item, int index)
+    {
+        processNumber = index;
+        ShowImageModal(GetImageSrc(item.CaptureWholeScreenImage)); 
+    }
+    void OnImageClick(ImageStepModel item)
+    {  
+        // // byte[] → base64
+        // string base64 = Convert.ToBase64String(bytes);
+
+        // // base64 → byte[]
+        // byte[] back = Convert.FromBase64String(base64);
+
+        // ใช้ได้
+        // // // // var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY); 
+        // // // // item.BaseImage = Convert.ToBase64String(imageRegion);
+        ShowImageModal(GetImageSrc(item.BaseImage));
+
+        return;
+        Console.WriteLine("Clicked BaseImage");
+
+        // 🔥 ใช้ต่อได้เลย
+        var base64 = item.BaseImage;
+
+        // เช่น แปลงเป็น byte[]
+        byte[] bytes = Convert.FromBase64String(base64);
+
+        // 👉 ทำต่อ:
+        // - compare image
+        // - preview
+        // - set เป็น template
+    }
+
+
+    private async Task OnChanged(ImageStepModel item, string field, object value)
+    {
+        try
+        {
+            switch (field)
+            {
+                // case nameof(ImageStepModel.BaseImage):
+                //     item.BaseImage = value?.ToString();
+                //     break;
+
+                // case nameof(ImageStepModel.CurrentFromScreen):
+                //     item.CurrentFromScreen = value?.ToString();
+                //     break;
+
+                case nameof(ImageStepModel.TopLeftX):
+                    item.TopLeftX = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.TopLeftY):
+                    item.TopLeftY = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.BotRightX):
+                    item.BotRightX = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.BotRightY):
+                    item.BotRightY = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.Interval):
+                    item.Interval = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.AfterClick):
+                    item.AfterClick = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.ReCheckInterval):
+                    item.ReCheckInterval = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.NextStepFound):
+                    item.NextStepFound = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.NextStepNotFound):
+                    item.NextStepNotFound = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.Active):
+                    item.Active = Convert.ToBoolean(value);
+                    break;
+            }
+
+            // 🔥 ตรงนี้คือ hook ไปทำ logic ต่อ
+            await HandleAfterChange(item, field);
+        }
+        catch { }
+    }
+
+    CancellationTokenSource _ctsHandleAfterChange;
+
+    async Task HandleAfterChange(ImageStepModel item, string field)
+    {
+        _ctsHandleAfterChange?.Cancel();
+        _ctsHandleAfterChange = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(300, _ctsHandleAfterChange.Token); // debounce
+             
+            bool isAllowEdit = true;
+            if (isAllowEdit)
+            {
+
+
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+}

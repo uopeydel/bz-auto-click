@@ -1,0 +1,334 @@
+﻿@page "/mouse-hook"
+@using BZ.Auto.Models
+@using BZ.Auto.Service
+@rendermode InteractiveServer
+@inject MouseHookService HookService
+@implements IDisposable
+
+<h3>Server-Side Mouse Hook</h3>
+
+<div class="d-flex flex-wrap align-items-center gap-2 mb-3">
+
+    <button class="btn btn-success" @onclick="async () => await StartHook()" disabled="@HookService.IsActive">
+        ▶ Start
+    </button>
+
+    <button class="btn btn-danger" @onclick="StopHook" disabled="@(!HookService.IsActive)">
+        ⏹ Stop
+    </button>
+
+    <button type="button" class="btn btn-primary"
+            @onclick="async () => await OnLoadAsync()" disabled="@(HookService.IsActive)">
+        📂 Load
+    </button>
+
+    <button type="button" class="btn btn-success"
+            @onclick="async () => await OnSaveAsync()" disabled="@(HookService.IsActive)">
+        💾 Save
+    </button>
+
+    
+
+    <input type="text" class="form-control input-name"
+           @bind="tableName" @bind:event="oninput" />
+
+</div>
+
+<p>Status: <strong>@(HookService.IsActive ? "🟢 Active" : "🔴 Inactive")</strong></p>
+
+<br />
+<table class="table table-bordered">
+
+    <thead>
+        <tr>
+            <th>Step</th>
+            <th>BaseImage</th>
+            <th>CurrentFromScreen</th>
+            <th>TopLeftX</th>
+            <th>TopLeftY</th>
+            <th>BotRightX</th>
+            <th>BotRightY</th> 
+        </tr>
+    </thead>
+    <tbody>
+
+        @foreach (var pair in Items.Select((item, index) => new { item, index }))
+        {
+            <tr class="@(processNumber == pair.index ? "row-selected" : "")">
+                <td>
+                    <button type="button" @onclick="() => OnIndexClick(pair.item, pair.index)" style="border:none; background:none; padding:0;">
+                        @pair.index
+                    </button>
+
+                </td>
+
+                <!-- BaseImage -->
+                <td>
+                    <button type="button" @onclick="() => OnImageClick(pair.item)" style="border:none; background:none; padding:0;">
+                        <img src="@GetImageSrc(pair.item.BaseImage)" width="200" height="50" style="cursor:pointer" />
+                    </button>
+
+                </td>
+
+                <!-- CurrentFromScreen -->
+                <td>
+                    <img src="@GetImageSrc(pair.item.CurrentFromScreenSmallToCompare)" @onclick="() => OnImageScreenClick(pair.item)"
+                         width="200" height="50" />
+                </td>
+
+                <!-- int fields -->
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.TopLeftX"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftX), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.TopLeftY"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftY), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.BotRightX"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightX), e.Value)" />
+                </td>
+
+                <td>
+                    <input type="number" class="form-control"
+                           value="@pair.item.BotRightY"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightY), e.Value)" />
+                </td>
+
+
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- ✅ Radio Group -->
+<div class="d-flex align-items-center gap-2 radio-group">
+    <input type="radio" name="position"
+           value="TopLeft"
+           checked="@(Position == "TopLeft")"
+           @onchange='() => Position = "TopLeft"' />
+    <label>Top Left</label>
+
+    <input type="radio" name="position"
+           value="BotRight"
+           checked="@(Position == "BotRight")"
+           @onchange='() => Position = "BotRight"' />
+    <label>Bot Right</label>
+</div>
+<table class="table table-bordered table-sm" style="max-width: 300px;">
+    <thead><tr><th>#</th><th>X</th><th>Y</th></tr></thead>
+    <tbody>
+        @foreach (var p in positions.AsEnumerable().Reverse())
+        {
+            <tr><td>@p.Index</td><td>@p.X</td><td>@p.Y</td></tr>
+        }
+    </tbody>
+</table>
+
+
+
+
+@if (isModalOpen)
+{
+    <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
+        <div class="modal-dialog modal-dialog-centered"
+             style="width: fit-content; max-width: 95vw; margin: auto;">
+            <div class="modal-content" style="width: fit-content;">
+
+                <button type="button" class="btn-close"
+                        @onclick="CloseModal"
+                        style="position: absolute; top: 8px; right: 8px; z-index: 10;">
+                </button>
+
+                <div class="modal-body p-0">
+                    <img src="@currentImage"
+                         style="
+                                         display: block;
+                                         width: 600px;
+                                         max-height: 800px;
+                                         object-fit: contain;" />
+                </div>
+
+                <div class="modal-footer justify-content-center py-2">
+                    <button class="btn btn-secondary btn-sm" @onclick="CloseModal">
+                        Close
+                    </button>
+                </div>
+
+            </div>
+        </div>
+    </div> 
+}
+
+
+
+@code {
+    private string Position = "TopLeft";
+    public string tableName = "ImageSteps";
+    private List<(int Index, int X, int Y)> positions = new();
+    private int counter = 0;
+
+    int processNumber = 0;
+    private List<ImageStepModel> Items = new()
+    {
+        new ImageStepModel
+        {
+            BaseImage =ImageCapture.Default,
+            CurrentFromScreenSmallToCompare = ImageCapture.Default,
+            TopLeftX = 0,
+            TopLeftY = 0,
+            BotRightX = 0,
+            BotRightY = 0,
+            Interval = 5,
+            AfterClick = 0,
+            ReCheckInterval = 2,
+            NextStepFound =0,
+            NextStepNotFound = 0,
+            Active = true
+        }
+    };
+
+    private async Task OnChanged(ImageStepModel item, string field, object value)
+    {
+        try
+        {
+            switch (field)
+            {  
+                case nameof(ImageStepModel.TopLeftX):
+                    item.TopLeftX = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.TopLeftY):
+                    item.TopLeftY = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.BotRightX):
+                    item.BotRightX = Convert.ToInt32(value);
+                    break;
+
+                case nameof(ImageStepModel.BotRightY):
+                    item.BotRightY = Convert.ToInt32(value);
+                    break; 
+            } 
+            await HandleAfterChange(item, field);
+        }
+        catch { }
+    }
+    CancellationTokenSource _ctsHandleAfterChange;
+    async Task HandleAfterChange(ImageStepModel item, string field)
+    {
+        _ctsHandleAfterChange?.Cancel();
+        _ctsHandleAfterChange = new CancellationTokenSource();
+
+        try
+        {
+            await Task.Delay(300, _ctsHandleAfterChange.Token); // debounce
+
+            bool isAllowEdit = true;
+            if (isAllowEdit)
+            {
+
+
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+    private bool isModalOpen = false;
+    private string currentImage = ""; 
+    void OnImageClick(ImageStepModel item)
+    { 
+        var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY); 
+        item.BaseImage = Convert.ToBase64String(imageRegion); 
+        ShowImageModal(GetImageSrc(item.BaseImage));
+    }
+    void OnImageScreenClick(ImageStepModel item)
+    {
+        ShowImageModal(GetImageSrc(item.CurrentFromScreenSmallToCompare));
+    }
+    void OnIndexClick(ImageStepModel item, int index)
+    {
+        processNumber = index; 
+    }
+    void ShowImageModal(string base64)
+    {
+        currentImage = base64;
+        isModalOpen = true;
+    } 
+    string GetImageSrc(string base64)
+    {
+        if (string.IsNullOrEmpty(base64)) return "";
+
+        if (base64.StartsWith("data:"))
+            return base64;
+
+        return $"data:image/png;base64,{base64}";
+    }
+
+    void CloseModal()
+    {
+        isModalOpen = false;
+    }
+    async Task OnSaveAsync()
+    {
+        if (Items.Count == 1)
+        {
+            return;
+        }
+        await SQLiteContext.InsertImageStep(Items , tableName);
+
+    }
+    async Task OnLoadAsync()
+    {
+        Items = await SQLiteContext.GetAll(tableName);
+    }
+
+
+
+
+    protected override void OnInitialized()
+    {
+        // Subscribe event จาก Service
+        HookService.OnSpacePressed += HandleSpacePressed;
+    }
+
+
+    private async Task StartHook()
+    {
+        await InvokeAsync(StateHasChanged);
+        HookService.Start();
+    }
+    private void StopHook()
+    {
+        HookService.Stop();
+    }
+
+    private void HandleSpacePressed(int x, int y)
+    {
+        if (Position == "TopLeft")
+        {
+            Items[processNumber].TopLeftX = x;
+            Items[processNumber].TopLeftY = y; 
+        }
+        else if (Position == "BotRight")
+        { 
+            Items[processNumber].BotRightX = x;
+            Items[processNumber].BotRightY = y;
+        }
+        positions.Add((++counter, x, y));
+
+        // ต้อง InvokeAsync เพราะ event มาจาก thread อื่น
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe เมื่อออกจากหน้า
+        HookService.OnSpacePressed -= HandleSpacePressed;
+    }
+}
