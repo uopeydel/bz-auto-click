@@ -102,7 +102,7 @@
 
     @* AutocompleteInput.razor *@
     <br />
-  
+
     <div class="autocomplete-wrapper" @ref="wrapperRef" width="200">
         <span>Save Name</span>
         <button @onclick="async () => await OnDropTableAsync()">🗑</button>
@@ -124,12 +124,12 @@
                         @onmousedown="() => SelectItem(item)">
                         @item
                     </li>
-                   
+
                 }
-            </ul> 
+            </ul>
         }
     </div>
-     
+
 
     <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
 
@@ -158,10 +158,10 @@
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                         display: block;
-                                         width: 600px;
-                                         max-height: 800px;
-                                         object-fit: contain;" />
+                                             display: block;
+                                             width: 600px;
+                                             max-height: 800px;
+                                             object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -261,7 +261,7 @@
                            value="@item.BaseImage"
                            @onchange="e => OnChanged(item, nameof(item.BaseImage), e.Value)" /> *@ 
                    
-                                                                @* <img src="@GetImageSrc(item.BaseImage)"
+                                                                    @* <img src="@GetImageSrc(item.BaseImage)"
                          width="200" height="50"
                          style="cursor:pointer"
                          @onclick="() => OnImageClick(item)" @onclick:stopPropagation="true" /> *@
@@ -324,7 +324,7 @@
                            value="@pair.item.ReCheckInterval"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.ReCheckInterval), e.Value)" />
                 </td>
-                 
+
                 <td>
                     <input type="number" class="form-control"
                            value="@pair.item.NextStepFound"
@@ -374,7 +374,7 @@
 
     private async Task OnInput(ChangeEventArgs e)
     {
-        tableName=  ValueAutoCompleteTableName = e.Value?.ToString() ?? "";
+        tableName = ValueAutoCompleteTableName = e.Value?.ToString() ?? "";
         await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
         FilterItems();
         showDropdown = filteredItemsTableName.Any();
@@ -396,7 +396,7 @@
 
     private async Task SelectItem(string item)
     {
-        tableName =  ValueAutoCompleteTableName = item;
+        tableName = ValueAutoCompleteTableName = item;
         await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
         showDropdown = false;
         selectedIndex = -1;
@@ -428,14 +428,10 @@
                 selectedIndex = -1;
                 break;
         }
-    } 
+    }
     #endregion
-    // public double Volume { get; set; } = 0.5;
 
-    // private void SetVolume(double value)
-    // {
-    //     Volume = value;
-    // }
+    #region  Volume
     record VolumeStep(string Icon, string Desc, double Value);
 
     private readonly VolumeStep[] _steps =
@@ -452,6 +448,22 @@
     {
         _idx = (_idx + 1) % _steps.Length;
     }
+
+    private async Task PlayJingleAsync()
+    {
+        try
+        {
+            // await PlayJingleAsync(0.5);  // 50%
+            // await PlayJingleAsync(0.2);  // เบามาก
+            // await PlayJingleAsync(1.0);  // ดังสุด (default)
+            await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", _currentVolumn.Value);
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Sound error: {ex.Message}");
+        }
+    }
+    #endregion
 
 
     public string tableName = "ImageSteps";
@@ -485,7 +497,8 @@
         RoundRunning = RoundMax;
         try
         {
-            var tableN = await  SQLiteContext.ListTableName();
+            ValueAutoCompleteTableName = tableName;
+            var tableN = await SQLiteContext.ListTableName();
             ItemsTableName = filteredItemsTableName = tableN;
             await OnLoadAsync();
         }
@@ -494,10 +507,12 @@
 
         }
     }
+
     void Remove(ImageStepModel item)
     {
         Items.Remove(item);
     }
+
     void AddRow()
     {
         Items.Add(new ImageStepModel
@@ -518,20 +533,6 @@
         });
     }
 
-    private async Task PlayJingleAsync()
-    {
-        try
-        {
-            // await PlayJingleAsync(0.5);  // 50%
-            // await PlayJingleAsync(0.2);  // เบามาก
-            // await PlayJingleAsync(1.0);  // ดังสุด (default)
-            await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", _currentVolumn.Value);
-        }
-        catch (Exception ex)
-        {
-            Console.WriteLine($"Sound error: {ex.Message}");
-        }
-    }
 
     int intervalLoop = 100;
     int processRecheckIfNotFound = 0;
@@ -708,10 +709,10 @@
     async Task OnDropTableAsync()
     {
         if (tableName == "ImageSteps")
-        { 
-            return; 
+        {
+            return;
         }
-        var tableN = await SQLiteContext.DropTable(tableName); 
+        var tableN = await SQLiteContext.DropTable(tableName);
         ItemsTableName = filteredItemsTableName = tableN;
 
         tableName = "ImageSteps";
@@ -743,7 +744,7 @@
             NextStepFound =0,
             NextStepNotFound = 0,
             Active = true,
-                FourceStopLoop = false
+            FourceStopLoop = false
         }
     };
     string GetImageSrc(string base64)
