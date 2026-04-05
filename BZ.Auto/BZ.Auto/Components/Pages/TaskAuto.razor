@@ -65,7 +65,7 @@
     <span>Round</span>
 
     <input type="number" class="form-control input-sm"
-           value="@RoundMax" min="1" max="5000" step="1" />
+           value="@RoundMax" min="1" max="9999" step="1" />
 
     <span>/</span>
 
@@ -131,7 +131,7 @@
     </div>
 
 
-    @* <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
+  @*   <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
 
     <input type="number" class="form-control" style="width:80px"
            @bind="intervalLoop" @bind:event="oninput" min="100" /> *@
@@ -467,9 +467,9 @@
 
 
     public string tableName = "ImageSteps";
-    int processNumber = 0;
-    int RoundRunning = 1;
-    int RoundMax = 100;
+    public int processNumber = 0;
+    public int RoundRunning = 1;
+    public int RoundMax = 9999;
     protected override async Task OnInitializedAsync()
     {
         // mock delay (เช่นโหลดจาก API)
@@ -534,9 +534,9 @@
     }
 
 
-    int intervalLoop = 300;
-    int processRecheckIfNotFound = 0;
-    int processRecheckIfNotFoundMax = 3;
+    public int intervalLoop = 300;
+    public int processRecheckIfNotFound = 0;
+    public int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
     CancellationTokenSource _cts;
     async Task OnStartAutoAsync()
@@ -607,7 +607,7 @@
                     Console.ResetColor();
                     processRecheckIfNotFound = 0;
                     processNumber = 0;
-                    RoundRunning--;
+                    // // RoundRunning--;
                     RandomIntBetween = 0;
                     timeCount = 0;
                     continue;
@@ -624,7 +624,7 @@
                     processRecheckIfNotFound = 0;
                     RandomIntBetween = 0;
                     timeCount = 0;
-                    RoundRunning--;
+                    // // RoundRunning--;
                     continue;
                 }
 
