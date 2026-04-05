@@ -1,11 +1,47 @@
 ﻿using BZ.Auto.Models;
 using Microsoft.Data.Sqlite;
 using System;
+using System.Collections.Generic;
 
 namespace BZ.Auto.Service
 {
 	public static class SQLiteContext
 	{
+		public static async Task<List<string>> DropTable(string tableToDrop)
+		{
+			using var connection = new SqliteConnection("Data Source=app.db");
+			await connection.OpenAsync();
+
+			// 🔥 DROP TABLE
+			string dropTableQuery = $"DROP TABLE IF EXISTS {tableToDrop}";
+			var command1 = connection.CreateCommand();
+			command1.CommandText = dropTableQuery;
+			command1.ExecuteNonQuery();
+
+			return await ListTableName();
+		}
+
+		public static async Task<List<string>> ListTableName()
+		{
+			var list = new List<string>();
+
+			using var connection = new SqliteConnection("Data Source=app.db");
+			await connection.OpenAsync();
+			var sqlCommand = "SELECT name FROM sqlite_schema WHERE type='table' ORDER BY name;";
+			var command = connection.CreateCommand();
+			command.CommandText = sqlCommand;
+
+			using var reader = await command.ExecuteReaderAsync();
+
+			while (await reader.ReadAsync())
+			{ 
+				var name = reader.GetString(0);
+				list.Add(name);
+			}
+
+			list = list.Where(w=> w != "sqlite_sequence").ToList();
+			return list;
+		}
 		public static async Task InsertImageStep(List<ImageStepModel> models , string tableNamee = "ImageSteps")
 		{ 
 			using var connection = new SqliteConnection("Data Source=app.db");
@@ -94,14 +130,16 @@ namespace BZ.Auto.Service
 		}
 
 		public static async Task<List<ImageStepModel>> GetAll(string tableNamee = "ImageSteps")
-		{ 
-			var list = new List<ImageStepModel>();
+		{
+			try
+			{
+				var list = new List<ImageStepModel>();
 
-			using var connection = new SqliteConnection("Data Source=app.db");
-			await connection.OpenAsync();
+				using var connection = new SqliteConnection("Data Source=app.db");
+				await connection.OpenAsync();
 
-			var command = connection.CreateCommand();
-			command.CommandText = $@"
+				var command = connection.CreateCommand();
+				command.CommandText = $@"
 			SELECT  
 				BaseImage,
 				CurrentFromScreen,
@@ -117,43 +155,48 @@ namespace BZ.Auto.Service
 				Active 
 			FROM {tableNamee}";
 
-			using var reader = await command.ExecuteReaderAsync();
+				using var reader = await command.ExecuteReaderAsync();
 
-			while (await reader.ReadAsync())
-			{
+				while (await reader.ReadAsync())
+				{
 
-				// ของเดิม (ผิด) -> ของใหม่ (ถูก)
-				var BaseImage = reader.GetString(0); // Index 0 = BaseImage
-				var CurrentFromScreenSmallToCompare = reader.GetString(1); // Index 1 = CurrentFromScreen
-				var TopLeftX = reader.GetInt32(2);
-				var TopLeftY = reader.GetInt32(3);
-				var BotRightX = reader.GetInt32(4);
-				var BotRightY = reader.GetInt32(5);
-				var Interval = reader.GetInt32(6);
-				var AfterClick = reader.GetInt32(7);
-				var ReCheckInterval = reader.GetInt32(8);
-				var NextStepFound = reader.GetInt32(9);
-				var NextStepNotFound = reader.GetInt32(10);
-				var Active = reader.GetInt32(11) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
+					// ของเดิม (ผิด) -> ของใหม่ (ถูก)
+					var BaseImage = reader.GetString(0); // Index 0 = BaseImage
+					var CurrentFromScreenSmallToCompare = reader.GetString(1); // Index 1 = CurrentFromScreen
+					var TopLeftX = reader.GetInt32(2);
+					var TopLeftY = reader.GetInt32(3);
+					var BotRightX = reader.GetInt32(4);
+					var BotRightY = reader.GetInt32(5);
+					var Interval = reader.GetInt32(6);
+					var AfterClick = reader.GetInt32(7);
+					var ReCheckInterval = reader.GetInt32(8);
+					var NextStepFound = reader.GetInt32(9);
+					var NextStepNotFound = reader.GetInt32(10);
+					var Active = reader.GetInt32(11) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
 
-				list.Add(new ImageStepModel
-				{ 
-					BaseImage = BaseImage,
-					CurrentFromScreenSmallToCompare = CurrentFromScreenSmallToCompare,
-					TopLeftX = TopLeftX,
-					TopLeftY = TopLeftY,
-					BotRightX = BotRightX,
-					BotRightY = BotRightY,
-					Interval = Interval,
-					AfterClick = AfterClick,
-					ReCheckInterval = ReCheckInterval,
-					NextStepFound = NextStepFound,
-					NextStepNotFound = NextStepNotFound,
-					Active = Active
-				});
+					list.Add(new ImageStepModel
+					{
+						BaseImage = BaseImage,
+						CurrentFromScreenSmallToCompare = CurrentFromScreenSmallToCompare,
+						TopLeftX = TopLeftX,
+						TopLeftY = TopLeftY,
+						BotRightX = BotRightX,
+						BotRightY = BotRightY,
+						Interval = Interval,
+						AfterClick = AfterClick,
+						ReCheckInterval = ReCheckInterval,
+						NextStepFound = NextStepFound,
+						NextStepNotFound = NextStepNotFound,
+						Active = Active
+					});
+				}
+
+				return list;
 			}
-
-			return list;
+			catch (Exception ex)
+			{
+				return new List<ImageStepModel> { };
+			}
 		}
 
 

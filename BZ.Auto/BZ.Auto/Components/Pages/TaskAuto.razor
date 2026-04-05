@@ -97,8 +97,44 @@
         💾 Save
     </button>
 
-    <input type="text" class="form-control input-name"
-           @bind="tableName" @bind:event="oninput" />
+    @* <input type="text" class="form-control input-name"
+           @bind="tableName" @bind:event="oninput" width="200"/> *@
+
+    @* AutocompleteInput.razor *@
+    <br />
+  
+    <div class="autocomplete-wrapper" @ref="wrapperRef" width="200">
+        <span>Save Name</span>
+        <button @onclick="async () => await OnDropTableAsync()">🗑</button>
+        <input type="text" width="200"
+               class="autocomplete-input"
+               value="@ValueAutoCompleteTableName"
+               @oninput="OnInput"
+               @onfocus="OnFocus"
+               @onkeydown="OnKeyDown"
+               placeholder="@PlaceholderAutoComplete"
+               autocomplete="off" />
+
+        @if (showDropdown && filteredItemsTableName.Any())
+        {
+            <ul class="autocomplete-dropdown">
+                @foreach (var (item, index) in filteredItemsTableName.Select((item, i) => (item, i)))
+                {
+                    <li class="autocomplete-item @(index == selectedIndex ? "active" : "")"
+                        @onmousedown="() => SelectItem(item)">
+                        @item
+                    </li>
+                   
+                }
+            </ul> 
+        }
+    </div>
+     
+
+    <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
+
+    <input type="number" class="form-control" style="width:80px"
+           @bind="intervalLoop" @bind:event="oninput" min="100" />
 
 </div>
 
@@ -325,6 +361,75 @@
 
 @code {
 
+    #region autoComplete
+    public string ValueAutoCompleteTableName { get; set; } = "";
+    public EventCallback<string> ValueChanged { get; set; }
+    public List<string> ItemsTableName { get; set; } = new();
+    public string PlaceholderAutoComplete { get; set; } = "Type to search...";
+
+    private ElementReference wrapperRef;
+    private bool showDropdown = false;
+    private int selectedIndex = -1;
+    private List<string> filteredItemsTableName = new();
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        tableName=  ValueAutoCompleteTableName = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
+        FilterItems();
+        showDropdown = filteredItemsTableName.Any();
+        selectedIndex = -1;
+    }
+
+    private void OnFocus()
+    {
+        FilterItems();
+        showDropdown = filteredItemsTableName.Any();
+    }
+
+    private void FilterItems()
+    {
+        filteredItemsTableName = string.IsNullOrWhiteSpace(ValueAutoCompleteTableName)
+        ? ItemsTableName.ToList()
+        : ItemsTableName.Where(x => x.Contains(ValueAutoCompleteTableName, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private async Task SelectItem(string item)
+    {
+        tableName =  ValueAutoCompleteTableName = item;
+        await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
+        showDropdown = false;
+        selectedIndex = -1;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        // if (!showDropdown) return;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                selectedIndex = Math.Min(selectedIndex + 1, filteredItemsTableName.Count - 1);
+                break;
+            case "ArrowUp":
+                selectedIndex = Math.Max(selectedIndex - 1, -1);
+                break;
+            case "Enter":
+                if (selectedIndex >= 0 && selectedIndex < filteredItemsTableName.Count)
+                { await SelectItem(filteredItemsTableName[selectedIndex]); }
+                else
+                {
+                    tableName = ValueAutoCompleteTableName;
+                    showDropdown = false;
+                }
+                break;
+            case "Escape":
+                showDropdown = false;
+                selectedIndex = -1;
+                break;
+        }
+    } 
+    #endregion
     // public double Volume { get; set; } = 0.5;
 
     // private void SetVolume(double value)
@@ -380,6 +485,8 @@
         RoundRunning = RoundMax;
         try
         {
+            var tableN = await  SQLiteContext.ListTableName();
+            ItemsTableName = filteredItemsTableName = tableN;
             await OnLoadAsync();
         }
         catch
@@ -426,6 +533,7 @@
         }
     }
 
+    int intervalLoop = 100;
     int processRecheckIfNotFound = 0;
     int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
@@ -434,7 +542,7 @@
     {
         await JS.InvokeVoidAsync("unlockAudio");
 
-        var intervalLoop = 300;
+
         int RandomIntBetween = 0;
         int timeCount = 0;
         processRecheckIfNotFound = 0;
@@ -455,7 +563,7 @@
                 await InvokeAsync(StateHasChanged);
 
                 Console.WriteLine();
-                Console.WriteLine("Time:" + DateTime.Now);
+                Console.WriteLine("DateTime:" + DateTime.Now);
                 Console.ForegroundColor = ConsoleColor.Cyan;
                 Console.WriteLine($"Process :{processNumber} | Round {RoundRunning} / {RoundMax}");
                 Console.ResetColor();
@@ -596,6 +704,19 @@
     async Task OnLoadAsync()
     {
         Items = await SQLiteContext.GetAll(tableName);
+    }
+    async Task OnDropTableAsync()
+    {
+        if (tableName == "ImageSteps")
+        { 
+            return; 
+        }
+        var tableN = await SQLiteContext.DropTable(tableName); 
+        ItemsTableName = filteredItemsTableName = tableN;
+
+        tableName = "ImageSteps";
+        await OnLoadAsync();
+
     }
     async Task OnStopAutoAsync()
     {
