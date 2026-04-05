@@ -19,6 +19,9 @@
 
 		public bool Active { get; set; }
 
+		public bool FourceStopLoop { get; set; }
+
+
 
 
 		public bool IsFound { get; set; }= false;

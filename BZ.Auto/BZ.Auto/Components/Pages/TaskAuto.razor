@@ -19,12 +19,12 @@
             <span>Round</span>
 
             <input type="number" class="form-control input-sm"
-                   value="@RoundCount" readonly />
+                   value="@RoundMax" min="1" max="500" />
 
             <span>/</span>
 
             <input type="number" class="form-control input-sm"
-                   value="@Round" min="1" max="500" />
+                   value="@RoundRunning" readonly/>
 
             <button type="button" class="btn btn-primary" disabled="@(isStartLoop)"
                     @onclick="() => AddRow()">
@@ -159,6 +159,7 @@
             <th>NextStep (Found)</th>
             <th>NextStep (NotFound)</th>
             <th>Active</th>
+            <th>FourceStopLoop</th>
         </tr>
     </thead>
     <tbody>
@@ -264,6 +265,12 @@
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.Active), e.Value)" />
                 </td>
 
+                <td class="text-center">
+                    <input type="checkbox"
+                           checked="@pair.item.FourceStopLoop"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.FourceStopLoop), e.Value)" />
+                </td>
+
                 <td>
                     <button class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item)">Delete</button>
                 </td>
@@ -276,8 +283,8 @@
 @code {
     public string tableName = "ImageSteps";
     int processNumber = 0;
-    int Round = 10;
-    int RoundCount = 1; 
+    int RoundRunning = 10;
+    int RoundMax = 10; 
     protected override async Task OnInitializedAsync()
     {
         // mock delay (เช่นโหลดจาก API)
@@ -298,7 +305,8 @@
                 ReCheckInterval = 2,
                 NextStepFound = 0,
                 NextStepNotFound = 0,
-                Active = true
+                Active = true,
+                FourceStopLoop = false
             }
         };
     }
@@ -321,7 +329,8 @@
             ReCheckInterval = 2,
             NextStepFound = 0,
             NextStepNotFound = 0,
-            Active = true
+            Active = true,
+            FourceStopLoop = false
         });
     }
 
@@ -357,7 +366,7 @@
         Console.WriteLine("Start");
         Console.ResetColor();
         processNumber = 0;
-        RoundCount = Round;
+        RoundRunning = RoundMax;
         isStartLoop = true;
         DateTime startTime = DateTime.Now;
         _cts = new CancellationTokenSource();
@@ -372,7 +381,7 @@
                 Console.WriteLine();
                 Console.WriteLine("Time:" + DateTime.Now);
                 Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"Process :{processNumber} | Round {RoundCount} / {Round}");
+                Console.WriteLine($"Process :{processNumber} | Round {RoundRunning} / {RoundMax}");
                 Console.ResetColor();
                 //ปิดเครื่องนอน วอจบแล้ว
                 if (DateTime.Now.Hour > 22)
@@ -384,25 +393,37 @@
                     // await OnStopAutoAsync();
                 }
 
+               
+                if (Items[processNumber].FourceStopLoop == true)
+                {
+                    RoundRunning = 0;
+                    processRecheckIfNotFound = 0;
+                    processNumber = 0;
+                    await OnStopAutoAsync();
+                    double volume = 0.3;
+                    await JS.InvokeVoidAsync("playJingle", "sounds/danger-alert.mp3", volume);
+                    return;
+                }
 
                 // Console.WriteLine("Check RoundCount");
-                if (RoundCount <= 0)
+                if (RoundRunning <= 0)
                 {
                     Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine($"Process {processNumber} : RoundCount <= 0");
                     Console.ResetColor();
                     await OnStopAutoAsync();
+                    return;
                 }
 
                 // Console.WriteLine("Check processNumber");
-                if (processNumber >= Items.Count())
+                if (processNumber == Items.Count())
                 {
                     Console.ForegroundColor = ConsoleColor.DarkYellow;
                     Console.WriteLine($"Process {processNumber} : processNumber >= Items.Count()");
                     Console.ResetColor();
                     processRecheckIfNotFound = 0;
                     processNumber = 0;
-                    RoundCount--;
+                    RoundRunning--;
                     RandomIntBetween = 0;
                     timeCount = 0;
                     continue;
@@ -419,6 +440,7 @@
                     processRecheckIfNotFound = 0;
                     RandomIntBetween = 0;
                     timeCount = 0;
+                    RoundRunning--;
                     continue;
                 }
 
@@ -441,6 +463,10 @@
                     continue;
                 }
 
+                if (processNumber == 0)
+                {
+                    RoundRunning--;
+                }
 
                 await Task.Delay(100);
                 Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
@@ -520,7 +546,8 @@
             ReCheckInterval = 2,
             NextStepFound =0,
             NextStepNotFound = 0,
-            Active = true
+            Active = true,
+                FourceStopLoop = false
         }
     };
     string GetImageSrc(string base64)
@@ -636,6 +663,9 @@
 
                 case nameof(ImageStepModel.Active):
                     item.Active = Convert.ToBoolean(value);
+                    break;
+                case nameof(ImageStepModel.FourceStopLoop):
+                    item.FourceStopLoop = Convert.ToBoolean(value);
                     break;
             }
 
