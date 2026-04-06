@@ -70,7 +70,8 @@ namespace BZ.Auto.Service
     ReCheckInterval INTEGER,
     NextStepFound INTEGER,
     NextStepNotFound INTEGER,
-    Active INTEGER
+    Active INTEGER,
+    FourceStopLoop INTEGER
 );";
 
 			var command2 = connection.CreateCommand();
@@ -94,7 +95,8 @@ namespace BZ.Auto.Service
             ReCheckInterval,
             NextStepFound,
             NextStepNotFound,
-            Active
+            Active,
+			FourceStopLoop 
         )
         VALUES (
             @BaseImage,
@@ -108,7 +110,8 @@ namespace BZ.Auto.Service
             @ReCheckInterval,
             @NextStepFound,
             @NextStepNotFound,
-            @Active
+            @Active,
+			@FourceStopLoop  
         );
     ";
 
@@ -124,6 +127,7 @@ namespace BZ.Auto.Service
 				command.Parameters.AddWithValue("@NextStepFound", models[i].NextStepFound);
 				command.Parameters.AddWithValue("@NextStepNotFound", models[i].NextStepNotFound);
 				command.Parameters.AddWithValue("@Active", models[i].Active ? 1 : 0);
+				command.Parameters.AddWithValue("@FourceStopLoop", models[i].FourceStopLoop ? 1 : 0);
 
 				await command.ExecuteNonQueryAsync();
 			}
@@ -152,7 +156,8 @@ namespace BZ.Auto.Service
 				ReCheckInterval,
 				NextStepFound,
 				NextStepNotFound,
-				Active 
+				Active,
+				FourceStopLoop
 			FROM {tableNamee}";
 
 				using var reader = await command.ExecuteReaderAsync();
@@ -173,6 +178,7 @@ namespace BZ.Auto.Service
 					var NextStepFound = reader.GetInt32(9);
 					var NextStepNotFound = reader.GetInt32(10);
 					var Active = reader.GetInt32(11) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
+					var FourceStopLoop = reader.GetInt32(12) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
 
 					list.Add(new ImageStepModel
 					{
@@ -187,7 +193,8 @@ namespace BZ.Auto.Service
 						ReCheckInterval = ReCheckInterval,
 						NextStepFound = NextStepFound,
 						NextStepNotFound = NextStepNotFound,
-						Active = Active
+						Active = Active,
+						FourceStopLoop = FourceStopLoop
 					});
 				}
 
