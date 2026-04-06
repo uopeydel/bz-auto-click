@@ -217,6 +217,14 @@ UI เปลี่ยน shade นิด ๆ
 				if (match.Confidence < 0.95 && (diffX > 100 || diffY > 100))
 				{
 					imageStep.IsFound = false;
+
+					imageStep.Confidence = match.Confidence;
+					imageStep.Scale = match.Scale;
+
+					imageStep.FoundTopLeftX = match.X;
+					imageStep.FoundTopLeftY = match.Y;
+					imageStep.FoundBotRightX = match.X + match.Width;
+					imageStep.FoundBotRightY = match.Y + match.Height;
 				}
 				else
 				{ 
@@ -226,6 +234,8 @@ UI เปลี่ยน shade นิด ๆ
 					imageStep.FoundBotRightX = match.X + match.Width;
 					imageStep.FoundBotRightY = match.Y + match.Height;
 
+					imageStep.Confidence = match.Confidence;
+					imageStep.Scale = match.Scale;
 
 					var imgCaptureRegionFound = ImageCapture.CaptureRegion(
 						imageStep.FoundTopLeftX,

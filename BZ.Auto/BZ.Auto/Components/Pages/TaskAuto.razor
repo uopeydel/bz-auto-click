@@ -8,53 +8,8 @@
 
 @page "/task-auto"
 
-
-
-
 <!-- ปุ่ม -->
 <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
-    @*  <div class="volume-selector">
-                <div class="btn-group">
-                    <div class="vol-wrap">
-                        <button class="vol-btn @(Volume == 1 ? "active" : "")"
-                                @onclick="() => SetVolume(1)">
-                            &#128266;
-                        </button>
-                        <span class="vol-label">1</span>
-                    </div>
-
-                    <div class="vol-wrap">
-                        <button class="vol-btn @(Volume == 0.5 ? "active" : "")"
-                                @onclick="() => SetVolume(0.5)">
-                            &#128265;
-                        </button>
-                        <span class="vol-label">0.5</span>
-                    </div>
-
-                    <div class="vol-wrap">
-                        <button class="vol-btn @(Volume == 0 ? "active" : "")"
-                                @onclick="() => SetVolume(0)">
-                            &#128264;
-                        </button>
-                        <span class="vol-label">0</span>
-                    </div>
-                </div>
-
-                <p>ค่าระดับเสียง: <strong>@Volume</strong></p>
-                 
-                @if (Volume == 1)
-                {
-                    <p>เสียงดังเต็มที่</p>
-                }
-                else if (Volume == 0.5)
-                {
-                    <p>เสียงระดับกลาง</p>
-                }
-                else if (Volume == 0)
-                {
-                    <p>ปิดเสียง</p>
-                }
-            </div> *@
 
     <div class="vol-wrap">
         <button class="vol-btn" @onclick="Cycle">@_currentVolumn.Icon</button>
@@ -97,10 +52,6 @@
         💾 Save
     </button>
 
-    @* <input type="text" class="form-control input-name"
-           @bind="tableName" @bind:event="oninput" width="200"/> *@
-
-    @* AutocompleteInput.razor *@
     <br />
 
     <div class="autocomplete-wrapper" @ref="wrapperRef" width="200">
@@ -131,11 +82,6 @@
     </div>
 
 
-  @*   <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
-
-    <input type="number" class="form-control" style="width:80px"
-           @bind="intervalLoop" @bind:event="oninput" min="100" /> *@
-
 </div>
 
 
@@ -158,10 +104,10 @@
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                             display: block;
-                                             width: 600px;
-                                             max-height: 800px;
-                                             object-fit: contain;" />
+                                                 display: block;
+                                                 width: 600px;
+                                                 max-height: 800px;
+                                                 object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -173,51 +119,7 @@
             </div>
         </div>
     </div>
-    @*  <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered"
-                     style="width: fit-content; max-width: 95vw; margin: auto;">
-                    <div class="modal-content" style="width: fit-content;">
-                         
-                        <button type="button" class="btn-close"
-                                @onclick="CloseModal"
-                                style="position: absolute; top: 8px; right: 8px; z-index: 10;">
-                        </button>
 
-                        <div class="modal-body p-0">
-                            <img src="@currentImage"
-                                 class="d-block"
-                                 style="max-width: 95vw; max-height: 80vh; object-fit: contain;" />
-                        </div>
-
-                        <div class="modal-footer justify-content-center py-2">
-                            <button class="btn btn-secondary btn-sm" @onclick="CloseModal">
-                                Close
-                            </button>
-                        </div>
-
-                    </div>
-                </div>
-            </div> *@
-    @* <div class="modal fade show d-block" tabindex="-1" style="background-color: rgba(0,0,0,0.5);">
-                <div class="modal-dialog modal-dialog-centered modal-lg">
-                    <div class="modal-content">
-
-                        <div class="modal-header">
-                            <h5 class="modal-title">Preview</h5>
-                            <button type="button" class="btn-close" @onclick="CloseModal"></button>
-                        </div>
-
-                        <div class="modal-body text-center">
-                            <img src="@currentImage" class="img-fluid" />
-                        </div>
-
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" @onclick="CloseModal">Close</button>
-                        </div>
-
-                    </div>
-                </div>
-            </div> *@
 }
 
 
@@ -229,6 +131,9 @@
             <th>Step</th>
             <th>BaseImage</th>
             <th>Current From Screen</th>
+
+            <th>Log</th>
+
             <th>TopLeftX</th>
             <th>TopLeftY</th>
             <th>BotRightX</th>
@@ -246,7 +151,6 @@
 
         @foreach (var pair in Items.Select((item, index) => new { item, index }))
         {
-            @* <tr style="@(processNumber == pair.index ? "background-color: #d0ebff !important;" : "")"> *@
             <tr class="@(processNumber == pair.index ? pair.item.IsFound == true ? "row-selected" : "row-selected-error" : "")">
                 <td>
                     <button type="button" @onclick="() => OnIndexClick(pair.item, pair.index)" style="border:none; background:none; padding:0;">
@@ -257,14 +161,6 @@
 
                 <!-- BaseImage -->
                 <td>
-                    @* <input class="form-control"
-                           value="@item.BaseImage"
-                           @onchange="e => OnChanged(item, nameof(item.BaseImage), e.Value)" /> *@ 
-                   
-                                                                    @* <img src="@GetImageSrc(item.BaseImage)"
-                         width="200" height="50"
-                         style="cursor:pointer"
-                         @onclick="() => OnImageClick(item)" @onclick:stopPropagation="true" /> *@
 
                     <button type="button" @onclick="() => OnImageClick(pair.item)" style="border:none; background:none; padding:0;">
                         <img src="@GetImageSrc(pair.item.BaseImage)" width="200" height="50" style="cursor:pointer" />
@@ -274,12 +170,14 @@
 
                 <!-- CurrentFromScreen -->
                 <td>
-                    @* <input class="form-control"
-                           value="@item.CurrentFromScreen"
-                           @onchange="e => OnChanged(item, nameof(item.CurrentFromScreen), e.Value)" /> *@
 
                     <img src="@GetImageSrc(pair.item.CurrentFromScreenSmallToCompare)" @onclick="() => OnImageScreenClick(pair.item)"
                          width="200" height="50" />
+                </td>
+
+                <td>
+                    <p style="white-space: nowrap;">match: @((int)(pair.item.Confidence * 100)) %</p>
+                    <p style="white-space: nowrap;">scale: @((int)(pair.item.Scale * 100)) %</p>
                 </td>
 
                 <!-- int fields -->
@@ -732,8 +630,8 @@
     {
         new ImageStepModel
         {
-            BaseImage = "https://via.placeholder.com/80",
-            CurrentFromScreenSmallToCompare = "https://via.placeholder.com/80/ff0000",
+            BaseImage = ImageCapture.Default,
+            CurrentFromScreenSmallToCompare = ImageCapture.Default,
             TopLeftX = 10,
             TopLeftY = 20,
             BotRightX = 100,

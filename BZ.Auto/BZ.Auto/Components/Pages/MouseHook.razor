@@ -34,8 +34,35 @@
 
     
 
-    <input type="text" class="form-control input-name"
-           @bind="tableName" @bind:event="oninput" />
+    @* <input type="text" class="form-control input-name"
+           @bind="tableName" @bind:event="oninput" /> *@
+
+    <div class="autocomplete-wrapper" @ref="wrapperRef" width="200">
+        <span>Save Name</span> 
+        <input type="text" width="200"
+               class="autocomplete-input"
+               value="@ValueAutoCompleteTableName"
+               @oninput="OnInput"
+               @onfocus="OnFocus"
+               @onkeydown="OnKeyDown"
+               placeholder="@PlaceholderAutoComplete"
+               autocomplete="off" />
+
+        @if (showDropdown && filteredItemsTableName.Any())
+        {
+            <ul class="autocomplete-dropdown">
+                @foreach (var (item, index) in filteredItemsTableName.Select((item, i) => (item, i)))
+                {
+                    <li class="autocomplete-item @(index == selectedIndex ? "active" : "")"
+                        @onmousedown="() => SelectItem(item)">
+                        @item
+                    </li>
+
+                }
+            </ul>
+        }
+    </div>
+
 
 </div>
 
@@ -176,6 +203,97 @@
 
 
 @code {
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        // mock delay (เช่นโหลดจาก API)
+        await Task.Delay(100); 
+        try
+        {
+            ValueAutoCompleteTableName = tableName;
+            var tableN = await SQLiteContext.ListTableName();
+            ItemsTableName = filteredItemsTableName = tableN;
+            await OnLoadAsync();
+        }
+        catch
+        {
+
+        }
+    }
+
+    #region autoComplete
+    public string ValueAutoCompleteTableName { get; set; } = "";
+    public EventCallback<string> ValueChanged { get; set; }
+    public List<string> ItemsTableName { get; set; } = new();
+    public string PlaceholderAutoComplete { get; set; } = "Type to search...";
+
+    private ElementReference wrapperRef;
+    private bool showDropdown = false;
+    private int selectedIndex = -1;
+    private List<string> filteredItemsTableName = new();
+
+    private async Task OnInput(ChangeEventArgs e)
+    {
+        tableName = ValueAutoCompleteTableName = e.Value?.ToString() ?? "";
+        await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
+        FilterItems();
+        showDropdown = filteredItemsTableName.Any();
+        selectedIndex = -1;
+    }
+
+    private void OnFocus()
+    {
+        FilterItems();
+        showDropdown = filteredItemsTableName.Any();
+    }
+
+    private void FilterItems()
+    {
+        filteredItemsTableName = string.IsNullOrWhiteSpace(ValueAutoCompleteTableName)
+        ? ItemsTableName.ToList()
+        : ItemsTableName.Where(x => x.Contains(ValueAutoCompleteTableName, StringComparison.OrdinalIgnoreCase)).ToList();
+    }
+
+    private async Task SelectItem(string item)
+    {
+        tableName = ValueAutoCompleteTableName = item;
+        await ValueChanged.InvokeAsync(ValueAutoCompleteTableName);
+        showDropdown = false;
+        selectedIndex = -1;
+    }
+
+    private async Task OnKeyDown(KeyboardEventArgs e)
+    {
+        // if (!showDropdown) return;
+
+        switch (e.Key)
+        {
+            case "ArrowDown":
+                selectedIndex = Math.Min(selectedIndex + 1, filteredItemsTableName.Count - 1);
+                break;
+            case "ArrowUp":
+                selectedIndex = Math.Max(selectedIndex - 1, -1);
+                break;
+            case "Enter":
+                if (selectedIndex >= 0 && selectedIndex < filteredItemsTableName.Count)
+                { await SelectItem(filteredItemsTableName[selectedIndex]); }
+                else
+                {
+                    tableName = ValueAutoCompleteTableName;
+                    showDropdown = false;
+                }
+                break;
+            case "Escape":
+                showDropdown = false;
+                selectedIndex = -1;
+                break;
+        }
+    }
+    #endregion
+
+
+
     private string Position = "TopLeft";
     public string tableName = "ImageSteps";
     private List<(int Index, int X, int Y)> positions = new();

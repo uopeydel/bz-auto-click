@@ -30,6 +30,10 @@
 		public int FoundBotRightX { get; set; }
 		public int FoundBotRightY { get; set; }
 
-		public string CaptureWholeScreenImage { get; set; }	
+		public string CaptureWholeScreenImage { get; set; }
+
+
+		public double Confidence { get; set; } // 0-1
+		public double Scale { get; set; }   // scale ที่เจอ (1.0 = ขนาดเดิม)
 	}
 }
