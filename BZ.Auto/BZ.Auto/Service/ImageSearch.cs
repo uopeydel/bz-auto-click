@@ -214,6 +214,9 @@ UI เปลี่ยน shade นิด ๆ
 				Console.WriteLine($"Scale:{match.Scale}");
 				Console.WriteLine();
 
+				// config สำหรับตรวจความใกล้เคียง
+				// Confidence < 0.95 ความเหมือนน้อยกว่า 95 เปอเซน ไม่ผ่าน
+				// ถ้าตำแหน่งห่างกันเกิน 100 px ไม่ผ่าน
 				if (match.Confidence < 0.95 && (diffX > 100 || diffY > 100))
 				{
 					imageStep.IsFound = false;
