@@ -5,11 +5,12 @@
 @using Microsoft.Data.Sqlite;
 @rendermode InteractiveServer
 @inject IJSRuntime JS
-
+@inject MouseHookService HookService
 @page "/task-auto"
 
+randomWait : @randomWait  | timeCount: @timeCount
 <!-- ปุ่ม -->
-<div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
+@* <div class="col-12 col-md-8 d-flex flex-wrap align-items-center gap-2 control-bar">
 
     <div class="vol-wrap">
         <button class="vol-btn" @onclick="Cycle">@_currentVolumn.Icon</button>
@@ -53,6 +54,10 @@
     </button>
 
     <br />
+      <span>ความถี่ของการตรวจสอบเงื่อนไข (millisec)</span>
+
+    <input type="number" class="form-control" style="width:100px"
+           @bind="intervalLoop" @bind:event="oninput" min="100" />
 
     <div class="autocomplete-wrapper" @ref="wrapperRef" width="200">
         <span>Save Name</span>
@@ -82,8 +87,145 @@
     </div>
 
 
-</div>
+</div> *@
+<div class="col-12 col-md-8 control-bar">
 
+    <!-- แถวที่ 1 -->
+    <div class="d-flex flex-wrap gap-2 align-items-end">
+
+        <!-- Volume -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Volume</label>
+            <button type="button" class="btn btn-success btn-sm" style="width:100px" @onclick="() => Cycle()">
+                @_currentVolumn.Icon @_currentVolumn.Desc
+            </button>
+        </div>
+
+        <!-- Round Max -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Round Max</label>
+            <input type="number" class="form-control form-control-sm" style="width:100px"
+                   @bind="RoundMax" @bind:event="oninput" min="1" max="9999" step="1" />
+        </div>
+        <!-- Round Running -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Running</label>
+            <input type="number" class="form-control form-control-sm" style="width:100px"
+                   @bind="RoundRunning" readonly />
+        </div>
+
+        <!-- Add -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Add Row</label>
+            <button type="button" class="btn btn-primary btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="() => AddRow()">
+                ➕ Add
+            </button>
+        </div>
+
+        <!-- Start -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Start</label>
+            <button type="button" class="btn btn-success btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnStartAutoAsync()">
+                🔄 Start
+            </button>
+        </div>
+
+        <!-- Stop -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Stop</label>
+            <button type="button" class="btn btn-danger btn-sm" style="width:100px"
+                    @onclick="async () => await OnStopAutoAsync()">
+                ❌ Stop
+            </button>
+        </div>
+
+        <!-- Load -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Load</label>
+            <button type="button" class="btn btn-primary btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnLoadAsync()">
+                📂 Load
+            </button>
+        </div>
+
+        <!-- Save -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Save</label>
+            <button type="button" class="btn btn-success btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnSaveAsync()">
+                💾 Save
+            </button>
+        </div>
+
+        <!-- Interval -->
+        @if (false)
+        {
+            <div class="d-flex flex-column align-items-center">
+                <label class="form-label small mb-1">Interval (ms)</label>
+                <input type="number" class="form-control form-control-sm" style="width:100px"
+                       @bind="intervalLoop" @bind:event="oninput" min="500" />
+            </div>
+        }
+
+        <!-- Save Name -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Save Name</label>
+            <div class="autocomplete-wrapper d-flex gap-1 align-items-center" @ref="wrapperRef">
+                <input type="text"
+                       class="form-control form-control-sm"
+                       style="width:160px"
+                       value="@ValueAutoCompleteTableName"
+                       @oninput="OnInput"
+                       @onfocus="OnFocus"
+                       @onkeydown="OnKeyDown"
+                       placeholder="@PlaceholderAutoComplete"
+                       autocomplete="off" />
+                <button class="btn btn-outline-danger btn-sm" @onclick="async () => await OnDropTableAsync()">🗑</button>
+                @if (showDropdown && filteredItemsTableName.Any())
+                {
+                    <ul class="autocomplete-dropdown">
+                        @foreach (var (item, index) in filteredItemsTableName.Select((item, i) => (item, i)))
+                        {
+                            <li class="autocomplete-item @(index == selectedIndex ? "active" : "")"
+                                @onmousedown="() => SelectItem(item)">
+                                @item
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <!-- Start -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Start</label>
+            <button type="button" class="btn btn-success btn-sm" style="width:100px" disabled="@(HookService.IsActive || isStartLoop)"
+                    @onclick="async () => await StartHook()">
+                ▶ Hook
+            </button>
+        </div>
+
+        <!-- Stop -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Stop</label>
+            <button type="button" class="btn btn-danger btn-sm" style="width:100px" disabled="@(!HookService.IsActive || isStartLoop)"
+                    @onclick="() => StopHook()">
+                ⏹ Release
+            </button>
+        </div>
+
+        <div class="d-flex flex-column align-items-center" style="width:200px">
+            <label class="form-label small mb-1">Position</label>
+            <button type="button" class="btn btn-sm btn-outline-secondary" style="width:200px"
+                    @onclick='() => Position = Position == "TopLeft" ? "BotRight" : "TopLeft"'>
+                🔄 @(Position == "TopLeft" ? "Top Left" : "Bot Right")
+            </button>
+        </div>
+
+    </div>
+</div>
 
 <br />
 
@@ -104,10 +246,10 @@
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                 display: block;
-                                                 width: 600px;
-                                                 max-height: 800px;
-                                                 object-fit: contain;" />
+                                                             display: block;
+                                                             width: 600px;
+                                                             max-height: 800px;
+                                                             object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -152,11 +294,8 @@
         @foreach (var pair in Items.Select((item, index) => new { item, index }))
         {
             <tr class="@(processNumber == pair.index ? pair.item.IsFound == true ? "row-selected" : "row-selected-error" : "")">
-                <td>
-                    <button type="button" @onclick="() => OnIndexClick(pair.item, pair.index)" style="border:none; background:none; padding:0;">
-                        @pair.index
-                    </button>
-
+                <td @onclick="() => OnIndexClick(pair.item, pair.index)" style="cursor:pointer">
+                    @pair.index
                 </td>
 
                 <!-- BaseImage -->
@@ -259,6 +398,47 @@
 
 @code {
 
+    #region
+
+    private async Task StartHook()
+    {
+        await InvokeAsync(StateHasChanged);
+        HookService.Start();
+    }
+    private void StopHook()
+    {
+        HookService.Stop();
+    }
+
+    private string Position = "TopLeft";
+    private int counter = 0;
+    private List<(int Index, int X, int Y)> positions = new();
+    private void HandleSpacePressed(int x, int y)
+    {
+        if (Position == "TopLeft")
+        {
+            Items[processNumber].TopLeftX = x;
+            Items[processNumber].TopLeftY = y;
+        }
+        else if (Position == "BotRight")
+        {
+            Items[processNumber].BotRightX = x;
+            Items[processNumber].BotRightY = y;
+        }
+        positions.Add((++counter, x, y));
+
+        // ต้อง InvokeAsync เพราะ event มาจาก thread อื่น
+        InvokeAsync(StateHasChanged);
+    }
+
+    public void Dispose()
+    {
+        // Unsubscribe เมื่อออกจากหน้า
+        HookService.OnSpacePressed -= HandleSpacePressed;
+    }
+
+    #endregion
+
     #region autoComplete
     public string ValueAutoCompleteTableName { get; set; } = "";
     public EventCallback<string> ValueChanged { get; set; }
@@ -334,9 +514,9 @@
 
     private readonly VolumeStep[] _steps =
     [
-        new("🔊", "เสียงเต็ม",  1),
-        new("🔉", "เสียงกลาง", 0.5),
-        new("🔈", "ปิดเสียง",   0),
+        new("🔊", "100%",  1),
+        new("🔉", "50%", 0.5),
+        new("🔈", "0%",   0),
     ];
 
     private int _idx = 0;
@@ -392,13 +572,18 @@
                 FourceStopLoop = false
             }
         };
-        RoundRunning = RoundMax;
+       
         try
         {
             ValueAutoCompleteTableName = tableName;
             var tableN = await SQLiteContext.ListTableName();
             ItemsTableName = filteredItemsTableName = tableN;
             await OnLoadAsync();
+
+            #region mouse hook
+            // Subscribe event จาก Service
+            HookService.OnSpacePressed += HandleSpacePressed;
+            #endregion
         }
         catch
         {
@@ -430,9 +615,9 @@
             FourceStopLoop = false
         });
     }
-
-
-    public int intervalLoop = 300;
+    public int timeCount = 0;
+    public int randomWait = 0;
+    public int intervalLoop = 500;
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
@@ -443,7 +628,7 @@
 
 
         int RandomIntBetween = 0;
-        int timeCount = 0;
+        timeCount = 0;
         processRecheckIfNotFound = 0;
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine("Start");
@@ -548,6 +733,13 @@
                 if (processNumber == 0)
                 {
                     RoundRunning--;
+                    if (RoundRunning % 17 == 0 || RoundRunning % 27 == 0 || RoundRunning % 37 == 0)
+                    {
+                        // await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", _currentVolumn.Value);
+                        randomWait = MouseClickHelper.RandomIntBetween(3, 7);
+                        await Task.Delay(randomWait);
+                        // await JS.InvokeVoidAsync("playJingle", "sounds/jingle.wav", _currentVolumn.Value);
+                    }
                 }
 
                 await Task.Delay(100);
@@ -675,7 +867,10 @@
     void OnIndexClick(ImageStepModel item, int index)
     {
         processNumber = index;
-        ShowImageModal(GetImageSrc(item.CaptureWholeScreenImage));
+        if (!string.IsNullOrEmpty(item.CaptureWholeScreenImage))
+        {
+            ShowImageModal(GetImageSrc(item.CaptureWholeScreenImage));
+        }
     }
     void OnImageClick(ImageStepModel item)
     {
@@ -686,23 +881,11 @@
         // byte[] back = Convert.FromBase64String(base64);
 
         // ใช้ได้
-        // // // // var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY);
-        // // // // item.BaseImage = Convert.ToBase64String(imageRegion);
+        var imageRegion = ImageCapture.CaptureRegion(item.TopLeftX, item.TopLeftY, item.BotRightX, item.BotRightY);
+        item.BaseImage = Convert.ToBase64String(imageRegion);
         ShowImageModal(GetImageSrc(item.BaseImage));
 
         return;
-        Console.WriteLine("Clicked BaseImage");
-
-        // 🔥 ใช้ต่อได้เลย
-        var base64 = item.BaseImage;
-
-        // เช่น แปลงเป็น byte[]
-        byte[] bytes = Convert.FromBase64String(base64);
-
-        // 👉 ทำต่อ:
-        // - compare image
-        // - preview
-        // - set เป็น template
     }
 
 
