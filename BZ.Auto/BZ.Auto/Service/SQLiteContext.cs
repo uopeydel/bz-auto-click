@@ -151,8 +151,31 @@ namespace BZ.Auto.Service
 				await connection.OpenAsync();
 
 				var command = connection.CreateCommand();
+				//				command.CommandText = $@"
+				//SELECT  
+				//    t.BaseImage,
+				//    t.CurrentFromScreen,
+				//    t.TopLeftX,
+				//    t.TopLeftY,
+				//    t.BotRightX,
+				//    t.BotRightY,
+				//    t.Interval,
+				//    t.AfterClick,
+				//    t.ReCheckInterval,
+				//    t.NextStepFound,
+				//    t.NextStepNotFound,
+				//    -- ใช้ COALESCE เพื่อดึงค่าจากตารางจำลอง (extra) ถ้าฟิลด์ใน t ไม่มีอยู่จริง
+				//    COALESCE(extra.NextStepEveryToStep, 0) AS NextStepEveryToStep,
+				//    COALESCE(extra.NextStepEveryRound, 0) AS NextStepEveryRound,
+				//    t.Active,
+				//    t.FourceStopLoop
+				//FROM {tableNamee} t
+				//LEFT JOIN (
+				//    SELECT 0 AS NextStepEveryToStep, 0 AS NextStepEveryRound
+				//) extra ON 1=1;";
+
 				command.CommandText = $@"
-			SELECT  
+SELECT  
     t.BaseImage,
     t.CurrentFromScreen,
     t.TopLeftX,
@@ -163,35 +186,12 @@ namespace BZ.Auto.Service
     t.AfterClick,
     t.ReCheckInterval,
     t.NextStepFound,
-    t.NextStepNotFound,
-    -- ใช้ COALESCE เพื่อดึงค่าจากตารางจำลอง (extra) ถ้าฟิลด์ใน t ไม่มีอยู่จริง
-    COALESCE(extra.NextStepEveryToStep, 0) AS NextStepEveryToStep,
-    COALESCE(extra.NextStepEveryRound, 0) AS NextStepEveryRound,
+    t.NextStepNotFound, 
+    t.NextStepEveryToStep,
+    t.NextStepEveryRound,
     t.Active,
     t.FourceStopLoop
-FROM {tableNamee} t
-LEFT JOIN (
-    SELECT 0 AS NextStepEveryToStep, 0 AS NextStepEveryRound
-) extra ON 1=1;";
-
-//				command.CommandText = $@"
-//SELECT  
-//    t.BaseImage,
-//    t.CurrentFromScreen,
-//    t.TopLeftX,
-//    t.TopLeftY,
-//    t.BotRightX,
-//    t.BotRightY,
-//    t.Interval,
-//    t.AfterClick,
-//    t.ReCheckInterval,
-//    t.NextStepFound,
-//    t.NextStepNotFound, 
-//    t.NextStepEveryToStep,
-//    t.NextStepEveryRound,
-//    t.Active,
-//    t.FourceStopLoop
-//FROM {tableNamee} t ";
+FROM {tableNamee} t ";
 
 				using var reader = await command.ExecuteReaderAsync();
 
