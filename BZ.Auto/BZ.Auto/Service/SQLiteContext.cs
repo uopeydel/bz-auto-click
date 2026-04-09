@@ -70,6 +70,8 @@ namespace BZ.Auto.Service
     ReCheckInterval INTEGER,
     NextStepFound INTEGER,
     NextStepNotFound INTEGER,
+    NextStepEveryToStep INTEGER,
+    NextStepEveryRound INTEGER,
     Active INTEGER,
     FourceStopLoop INTEGER
 );";
@@ -95,6 +97,8 @@ namespace BZ.Auto.Service
             ReCheckInterval,
             NextStepFound,
             NextStepNotFound,
+            NextStepEveryToStep,
+            NextStepEveryRound,
             Active,
 			FourceStopLoop 
         )
@@ -110,6 +114,8 @@ namespace BZ.Auto.Service
             @ReCheckInterval,
             @NextStepFound,
             @NextStepNotFound,
+            @NextStepEveryToStep,
+            @NextStepEveryRound,
             @Active,
 			@FourceStopLoop  
         );
@@ -126,6 +132,8 @@ namespace BZ.Auto.Service
 				command.Parameters.AddWithValue("@ReCheckInterval", models[i].ReCheckInterval);
 				command.Parameters.AddWithValue("@NextStepFound", models[i].NextStepFound);
 				command.Parameters.AddWithValue("@NextStepNotFound", models[i].NextStepNotFound);
+				command.Parameters.AddWithValue("@NextStepEveryToStep", models[i].NextStepEveryToStep);
+				command.Parameters.AddWithValue("@NextStepEveryRound", models[i].NextStepEveryRound);
 				command.Parameters.AddWithValue("@Active", models[i].Active ? 1 : 0);
 				command.Parameters.AddWithValue("@FourceStopLoop", models[i].FourceStopLoop ? 1 : 0);
 
@@ -145,20 +153,45 @@ namespace BZ.Auto.Service
 				var command = connection.CreateCommand();
 				command.CommandText = $@"
 			SELECT  
-				BaseImage,
-				CurrentFromScreen,
-				TopLeftX,
-				TopLeftY,
-				BotRightX,
-				BotRightY,
-				Interval,
-				AfterClick,
-				ReCheckInterval,
-				NextStepFound,
-				NextStepNotFound,
-				Active,
-				FourceStopLoop
-			FROM {tableNamee}";
+    t.BaseImage,
+    t.CurrentFromScreen,
+    t.TopLeftX,
+    t.TopLeftY,
+    t.BotRightX,
+    t.BotRightY,
+    t.Interval,
+    t.AfterClick,
+    t.ReCheckInterval,
+    t.NextStepFound,
+    t.NextStepNotFound,
+    -- ใช้ COALESCE เพื่อดึงค่าจากตารางจำลอง (extra) ถ้าฟิลด์ใน t ไม่มีอยู่จริง
+    COALESCE(extra.NextStepEveryToStep, 0) AS NextStepEveryToStep,
+    COALESCE(extra.NextStepEveryRound, 0) AS NextStepEveryRound,
+    t.Active,
+    t.FourceStopLoop
+FROM {tableNamee} t
+LEFT JOIN (
+    SELECT 0 AS NextStepEveryToStep, 0 AS NextStepEveryRound
+) extra ON 1=1;";
+
+//				command.CommandText = $@"
+//SELECT  
+//    t.BaseImage,
+//    t.CurrentFromScreen,
+//    t.TopLeftX,
+//    t.TopLeftY,
+//    t.BotRightX,
+//    t.BotRightY,
+//    t.Interval,
+//    t.AfterClick,
+//    t.ReCheckInterval,
+//    t.NextStepFound,
+//    t.NextStepNotFound, 
+//    t.NextStepEveryToStep,
+//    t.NextStepEveryRound,
+//    t.Active,
+//    t.FourceStopLoop
+//FROM {tableNamee} t ";
 
 				using var reader = await command.ExecuteReaderAsync();
 
@@ -177,8 +210,10 @@ namespace BZ.Auto.Service
 					var ReCheckInterval = reader.GetInt32(8);
 					var NextStepFound = reader.GetInt32(9);
 					var NextStepNotFound = reader.GetInt32(10);
-					var Active = reader.GetInt32(11) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
-					var FourceStopLoop = reader.GetInt32(12) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
+					var NextStepEveryToStep = reader.GetInt32(11);
+					var NextStepEveryRound = reader.GetInt32(12);
+					var Active = reader.GetInt32(13) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
+					var FourceStopLoop = reader.GetInt32(14) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
 
 					list.Add(new ImageStepModel
 					{
@@ -193,6 +228,8 @@ namespace BZ.Auto.Service
 						ReCheckInterval = ReCheckInterval,
 						NextStepFound = NextStepFound,
 						NextStepNotFound = NextStepNotFound,
+						NextStepEveryToStep = NextStepEveryToStep,
+						NextStepEveryRound = NextStepEveryRound,
 						Active = Active,
 						FourceStopLoop = FourceStopLoop
 					});

@@ -16,6 +16,8 @@
 
 		public int NextStepFound { get; set; }
 		public int NextStepNotFound { get; set; }
+		public int NextStepEveryToStep { get; set; }
+		public int NextStepEveryRound { get; set; }
 
 		public bool Active { get; set; }
 
