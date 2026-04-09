@@ -5,7 +5,7 @@ namespace BZ.Auto.Service
 {
 	public class MouseClickHelper
 	{
-		public static int RandomIntBetween(int minValue, int maxValue)
+		public static int RandomIntBetween(int minValue, int maxValue , int multiplyBy = 1000)
 		{
 			if (minValue > maxValue)
 			{
@@ -13,8 +13,9 @@ namespace BZ.Auto.Service
 			}
 
 			Random random = new Random();
-			return random.Next(minValue * 1000, maxValue * 1000);
+			return random.Next(minValue * multiplyBy, maxValue * multiplyBy);
 		}
+	 
 		public static int ConvertSecondToMilisecond(decimal seconds)
 		{
 			// TimeSpan.FromSeconds(seconds);
