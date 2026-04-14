@@ -590,11 +590,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             {
                 await InvokeAsync(StateHasChanged);
 
-                Console.WriteLine();
-                Console.WriteLine("DateTime:" + DateTime.Now);
-                Console.ForegroundColor = ConsoleColor.Cyan;
-                Console.WriteLine($"Process :{processNumber} | Round {RoundRunning} / {RoundMax}");
-                Console.ResetColor();
+              
                 //ปิดเครื่องนอน วอจบแล้ว
                 if (DateTime.Now.Hour > 22)
                 {
@@ -658,22 +654,36 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 if (RandomIntBetween == 0)
                 {
-                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2);
-
+                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2); 
                 }
-                var isStillWaitForInterval = timeCount <
-                    MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].Interval) +
-                    RandomIntBetween;
+
+                bool isStillWaitForInterval = false;
+                var beforeClickInterval = Items[processNumber].Interval;
+                if (beforeClickInterval > 0)
+                {
+                    isStillWaitForInterval = timeCount <
+                    MouseClickHelper.ConvertSecondToMilisecond(beforeClickInterval) +
+                    RandomIntBetween; 
+                } 
 
                 // Console.WriteLine("Check isStillWaitForInterval");
                 if (isStillWaitForInterval)
                 {
                     await Task.Delay(intervalLoop);
-                    timeCount += intervalLoop;
-
+                    timeCount += intervalLoop; 
                     continue;
                 }
 
+                Console.WriteLine();
+                Console.WriteLine("DateTime:" + DateTime.Now);
+                Console.ForegroundColor = ConsoleColor.Cyan;
+                Console.WriteLine($"Process :{processNumber} | Round {RoundRunning} / {RoundMax}");
+                Console.ResetColor();
+
+
+                Console.ForegroundColor = ConsoleColor.Magenta; 
+                Console.WriteLine($"TimeCount before check image {timeCount} ms");
+                Console.ResetColor();
                 if (processNumber == 0)
                 {
                     RoundRunning--;
@@ -686,12 +696,17 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     }
                 }
 
-                await Task.Delay(100);
                 Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
                 if (Items[processNumber].IsFound)
                 {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
+                    Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
+                    await Task.Delay(ranDomBeforeClick);
+                    Console.ResetColor();
+
                     await PlayJingleAsync();
                     var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
                     MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
