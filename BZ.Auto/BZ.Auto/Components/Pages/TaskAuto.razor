@@ -7,6 +7,9 @@
 @inject IJSRuntime JS
 @inject MouseHookService HookService
 @page "/task-auto"
+@using Microsoft.Extensions.Configuration
+@inject IConfiguration Configuration
+
 
 randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery / @randomAdjustRound
 <div class="col-12 col-md-8 control-bar">
@@ -81,12 +84,12 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         </div>
 
         <!-- Interval -->
-        @if (true)
+        @if (false)
         {
             <div class="d-flex flex-column align-items-center">
                 <label class="form-label small mb-1">Interval (ms)</label>
                 <input type="number" class="form-control form-control-sm" style="width:100px"
-                       @bind="intervalLoop" @bind:event="oninput" min="50" />
+                       @bind="intervalLoop" @bind:event="oninput" min="350" />
             </div>
         }
 
@@ -560,7 +563,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
     public int randomAdjustRound = 0;
     public int timeCount = 0;
     public int randomWait = 0;
-    public int intervalLoop = 50;
+    public int intervalLoop = 350;
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
@@ -590,7 +593,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             {
                 await InvokeAsync(StateHasChanged);
 
-              
+
                 //ปิดเครื่องนอน วอจบแล้ว
                 if (DateTime.Now.Hour > 22)
                 {
@@ -604,6 +607,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 if (Items[processNumber].FourceStopLoop == true)
                 {
+                    var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
+                    var BotName = Configuration["DiscordSettings:BotName"];
+                    
+                    await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
                     RoundRunning = 0;
                     processRecheckIfNotFound = 0;
                     processNumber = 0;
