@@ -1,18 +1,21 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
-  <PropertyGroup>
-    <TargetFramework>net10.0</TargetFramework>
-    <Nullable>enable</Nullable>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <BlazorDisableThrowNavigationException>true</BlazorDisableThrowNavigationException>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
-  </PropertyGroup>
+	<PropertyGroup>
+		<TargetFramework>net10.0-windows</TargetFramework>
+		<Nullable>enable</Nullable>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<UseWindowsForms>true</UseWindowsForms>
+		<SystemDrawingCommon>true</SystemDrawingCommon>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.5" />
-    <PackageReference Include="OpenCvSharp4.Windows" Version="4.13.0.20260302" />
-    <PackageReference Include="SkiaSharp" Version="3.119.2" />
-    <PackageReference Include="System.Drawing.Common" Version="10.0.5" />
-  </ItemGroup>
+ 
+		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+	</PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.Data.Sqlite" Version="10.0.5" />
+		<PackageReference Include="OpenCvSharp4.Windows" Version="4.13.0.20260302" />
+		<PackageReference Include="SkiaSharp" Version="3.119.2" />
+		<PackageReference Include="System.Drawing.Common" Version="10.0.5" />
+	</ItemGroup>
 
 </Project>

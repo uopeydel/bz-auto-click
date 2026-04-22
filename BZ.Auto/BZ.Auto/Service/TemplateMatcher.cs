@@ -36,7 +36,7 @@ public class TemplateMatcher
 			if (newW < 10 || newH < 10) continue;
 			if (newW > screenshot.Width || newH > screenshot.Height) continue;
 
-			Cv2.Resize(template, resized, new Size(newW, newH),
+			Cv2.Resize(template, resized, new OpenCvSharp.Size(newW, newH),
 				interpolation: InterpolationFlags.Lanczos4);
 
 			var result = MatchSingle(screenshot, resized, threshold);
@@ -63,7 +63,7 @@ public class TemplateMatcher
 
 		// TM_CCOEFF_NORMED ทนต่อความแตกต่างของ brightness ได้ดีที่สุด
 		Cv2.MatchTemplate(screenshot, template, result, TemplateMatchModes.CCoeffNormed);
-		Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out Point maxLoc);
+		Cv2.MinMaxLoc(result, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
 
 		if (maxVal < threshold)
 			return null;
@@ -100,7 +100,7 @@ public class TemplateMatcher
 		// วน suppress ตำแหน่งซ้ำซ้อน (Non-Maximum Suppression แบบง่าย)
 		while (true)
 		{
-			Cv2.MinMaxLoc(resultMat, out _, out double maxVal, out _, out Point maxLoc);
+			Cv2.MinMaxLoc(resultMat, out _, out double maxVal, out _, out OpenCvSharp.Point maxLoc);
 
 			if (maxVal < threshold) break;
 
