@@ -609,7 +609,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 {
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
                     var BotName = Configuration["DiscordSettings:BotName"];
-                    
+
                     await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
                     RoundRunning = 0;
                     processRecheckIfNotFound = 0;
@@ -708,15 +708,25 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
                 if (Items[processNumber].IsFound)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
-                    Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
-                    await Task.Delay(ranDomBeforeClick);
-                    Console.ResetColor();
 
-                    await PlayJingleAsync();
+
+                    // await PlayJingleAsync();
                     var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
-                    MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
+
+                    var current = MouseOperationsService.GetCursorPosition();
+                    //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
+
+                    MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
+                        speedPxPerSec: 12000, smoothness: 4);
+
+
+                    // Console.ForegroundColor = ConsoleColor.Yellow;
+                    // var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
+                    // Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
+                    // await Task.Delay(ranDomBeforeClick);
+                    // Console.ResetColor();
+
+                    // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
                     await MouseOperationsService.LeftMouseClick();
                     await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
 
