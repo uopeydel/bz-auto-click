@@ -1,6 +1,7 @@
 ﻿using BZ.Auto.Service;
 using System;
 using System.Runtime.InteropServices;
+using static MouseHookService;
 
 public class BackgroundMouse
 {
@@ -24,10 +25,11 @@ public class BackgroundMouse
 
 	public static async Task ClickAtBackground(IntPtr handle, int x, int y)
 	{
-		SetWindowPos(handle, IntPtr.Zero, 0, 0, 0, 0, SWP_NOSIZE | SWP_NOZORDER | SWP_SHOWWINDOW);
+		POINT clientPoint = new POINT { X = x,Y = y};
+		ScreenToClient(handle, ref clientPoint);
 
 		// คำนวณพิกัด X, Y ให้อยู่ในรูปแบบที่ Windows เข้าใจ (LPARAM)
-		IntPtr lParam = (IntPtr)((y << 16) | (x & 0xFFFF));
+		IntPtr lParam = (IntPtr)((clientPoint.Y << 16) | (clientPoint.X & 0xFFFF));
 
 		// ส่งคำสั่งเมาส์ซ้ายกดลง (Down)
 		PostMessage(handle, WM_LBUTTONDOWN, (IntPtr)1, lParam);

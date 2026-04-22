@@ -100,9 +100,9 @@ namespace BZ.Auto.Service
 		public static string filePath { get; set; }=  "";
 		public static async Task LeftMouseClickBackGround(int x , int y)
 		{
-			Process[] processes = Process.GetProcessesByName("chrome");
+			//Process[] processes = Process.GetProcessesByName("chrome");
 			 
-			await BackgroundMouse.ClickAtBackground(processes[0].MainWindowHandle, x, y);
+			await BackgroundMouse.ClickAtBackground(ChromeWindowManager.Hwnd_SELECTED, x, y);
 
 			//string fileName = "favicon.png";
 			//string filePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", fileName);
@@ -118,7 +118,7 @@ namespace BZ.Auto.Service
 				// ต้องรัน Form ใน Thread ใหม่ที่เป็น STA
 				Thread thread = new Thread(() =>
 				{
-					Application.Run(new StickerOverlay(filePath, x, y, 3));
+					Application.Run(new StickerOverlay(filePath, x, y, 2));
 				});
 
 				thread.SetApartmentState(ApartmentState.STA); // สำคัญมากสำหรับ WinForms

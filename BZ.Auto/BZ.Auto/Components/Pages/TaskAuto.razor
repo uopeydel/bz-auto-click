@@ -122,6 +122,28 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             </div>
         </div>
 
+
+        <!-- Select Chrome Tab -->
+        @if (ChromeTabForSelect != null && ChromeTabForSelect.Any())
+        {
+            <div class="d-flex flex-column align-items-center">
+                <label class="form-label small mb-1">Select Chrome Tab ✪</label>
+                <div class="d-flex gap-1 align-items-center">
+                    <select class="form-select form-select-sm"
+                            style="width:160px"
+                            @onchange="OnTabChanged">
+                        @foreach (var (item, index) in ChromeTabForSelect.Select((value, i) => (value, i)))
+                        {
+                            <option value="@index">
+                                @item.Title
+                            </option>
+                        }
+                    </select>
+                    <button class="btn btn-outline-danger btn-sm" @onclick="async () => await ReloadChromeList()">Reload Chrome List ✪</button>
+                </div>
+            </div>
+        }
+
         <!-- Start -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Start</label>
@@ -170,10 +192,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                 display: block;
-                                                                 width: 600px;
-                                                                 max-height: 800px;
-                                                                 object-fit: contain;" />
+                                                                             display: block;
+                                                                             width: 600px;
+                                                                             max-height: 800px;
+                                                                             object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -338,6 +360,260 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
 @code {
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     #region
 
     private async Task StartHook()
@@ -481,6 +757,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             Console.WriteLine($"Sound error: {ex.Message}");
         }
     }
+
     #endregion
 
 
@@ -528,13 +805,54 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             #endregion
 
 
-            MouseOperationsService.filePath = Path.Combine(Env.WebRootPath, "favicon.png"); ;
+            MouseOperationsService.filePath = Path.Combine(Env.WebRootPath, "favicon.png");
+
+
+
+            #region Selector Chrome
+            await ReloadChromeList(); 
+
+            #endregion
         }
         catch
         {
 
         }
     }
+
+
+
+    public List<ChromeWindowInfo> ChromeTabForSelect;
+    private void OnTabChanged(ChangeEventArgs e)
+    {
+        if (int.TryParse(e.Value?.ToString(), out int index))
+        {
+            SelectChromeTabToActive(index);
+        }
+    }
+
+    void SelectChromeTabToActive(int index)
+    { 
+        if (ChromeTabForSelect == null || ChromeTabForSelect.Count == 0)
+        { 
+            return;
+        }
+        ChromeWindowManager.Hwnd_SELECTED = ChromeTabForSelect[index].Hwnd;
+        ChromeWindowManager.MoveSelectedScreenWindowsToOrigin(ChromeTabForSelect);
+
+    }
+
+    async Task ReloadChromeList()
+    {
+        ChromeTabForSelect = ChromeWindowManager.GetChromeWindows();
+        ChromeWindowManager.Hwnd_SELECTED = ChromeTabForSelect[0].Hwnd;
+        ChromeWindowManager.MoveSelectedScreenWindowsToOrigin(ChromeTabForSelect);
+    }
+
+
+
+
+
 
     void Remove(ImageStepModel item)
     {
@@ -664,7 +982,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 if (RandomIntBetween == 0)
                 {
-                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2); 
+                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2);
                 }
 
                 bool isStillWaitForInterval = false;
@@ -673,14 +991,14 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 {
                     isStillWaitForInterval = timeCount <
                     MouseClickHelper.ConvertSecondToMilisecond(beforeClickInterval) +
-                    RandomIntBetween; 
-                } 
+                    RandomIntBetween;
+                }
 
                 // Console.WriteLine("Check isStillWaitForInterval");
                 if (isStillWaitForInterval)
                 {
                     await Task.Delay(intervalLoop);
-                    timeCount += intervalLoop; 
+                    timeCount += intervalLoop;
                     continue;
                 }
 
@@ -691,7 +1009,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Console.ResetColor();
 
 
-                Console.ForegroundColor = ConsoleColor.Magenta; 
+                Console.ForegroundColor = ConsoleColor.Magenta;
                 Console.WriteLine($"TimeCount before check image {timeCount} ms");
                 Console.ResetColor();
                 if (processNumber == 0)
@@ -730,10 +1048,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                     }
                     else
-                    { 
-                        randomAdjustRound = 
+                    {
+                        randomAdjustRound =
                             Items[processNumber].NextStepEveryRound +
-                            MouseClickHelper.RandomIntBetween(0, Items[processNumber].NextStepEveryRound ,1);
+                            MouseClickHelper.RandomIntBetween(0, Items[processNumber].NextStepEveryRound, 1);
                     }
                     if (countForEvery >= randomAdjustRound
                         && Items[processNumber].NextStepEveryToStep > 0)
@@ -745,7 +1063,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     else
                     {
                         if (processNumber == 0)
-                        { 
+                        {
                             countForEvery++;
                         }
                         processNumber = Items[processNumber].NextStepFound;

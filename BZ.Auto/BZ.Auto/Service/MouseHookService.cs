@@ -127,8 +127,8 @@ public class MouseHookService : IDisposable
 
 			if (vkCode == VK_SPACE)
 			{
-				//GetCursorPos(out POINT p);
-				POINT p = GetRelativeCoordinates();
+				GetCursorPos(out POINT p);
+				//POINT p = GetRelativeCoordinates();
 				Console.WriteLine($"Space pressed at X={p.X}, Y={p.Y}");
 				OnSpacePressed?.Invoke(p.X, p.Y);
 			}
@@ -144,7 +144,7 @@ public class MouseHookService : IDisposable
 	static extern IntPtr WindowFromPoint(POINT point);
 
 	[DllImport("user32.dll")]
-	static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+	public static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
 
 	public POINT GetRelativeCoordinates()
 	{
