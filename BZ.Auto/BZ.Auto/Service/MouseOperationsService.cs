@@ -1,4 +1,6 @@
-﻿using System.Runtime.InteropServices;
+﻿using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Windows.Shapes;
 
 namespace BZ.Auto.Service
 {
@@ -91,6 +93,50 @@ namespace BZ.Auto.Service
 			//  SystemSounds.Beep.Play();
 			//(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
 			MouseEvent(MouseEventFlags.LeftUp);
+		}
+
+
+		
+		public static string filePath { get; set; }=  "";
+		public static async Task LeftMouseClickBackGround(int x , int y)
+		{
+			Process[] processes = Process.GetProcessesByName("chrome");
+			 
+			await BackgroundMouse.ClickAtBackground(processes[0].MainWindowHandle, x, y);
+
+			//string fileName = "favicon.png";
+			//string filePath = Path.Combine(AppContext.BaseDirectory, "wwwroot", fileName);
+
+			// ตรวจสอบก่อนเพื่อความชัวร์
+			if (File.Exists(filePath))
+			{
+
+				#region DrawSticker
+
+				//_ = DirectScreenOverlay.DrawStickerAsync(filePath, x, y, 3);
+
+				// ต้องรัน Form ใน Thread ใหม่ที่เป็น STA
+				Thread thread = new Thread(() =>
+				{
+					Application.Run(new StickerOverlay(filePath, x, y, 3));
+				});
+
+				thread.SetApartmentState(ApartmentState.STA); // สำคัญมากสำหรับ WinForms
+				thread.Start();
+				#endregion
+				Console.ForegroundColor = ConsoleColor.Green;
+				Console.WriteLine(filePath + " Exist");
+			}
+			else
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				Console.WriteLine(filePath + " Not Exist");
+			}
+			Console.ResetColor();
+
+			//MouseEvent(MouseEventFlags.LeftDown);
+			//await Task.Delay(GenerateRandomMillisecond(1, 2)); 
+			//MouseEvent(MouseEventFlags.LeftUp);
 		}
 
 		public static void MouseEventWheelDown()

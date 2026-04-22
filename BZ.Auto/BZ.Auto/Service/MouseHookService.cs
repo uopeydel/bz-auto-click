@@ -127,7 +127,8 @@ public class MouseHookService : IDisposable
 
 			if (vkCode == VK_SPACE)
 			{
-				GetCursorPos(out POINT p);
+				//GetCursorPos(out POINT p);
+				POINT p = GetRelativeCoordinates();
 				Console.WriteLine($"Space pressed at X={p.X}, Y={p.Y}");
 				OnSpacePressed?.Invoke(p.X, p.Y);
 			}
@@ -135,6 +136,52 @@ public class MouseHookService : IDisposable
 
 		return CallNextHookEx(_hookId, nCode, wParam, lParam);
 	}
+
+
+	#region MouseTracker
+	  
+	[DllImport("user32.dll")]
+	static extern IntPtr WindowFromPoint(POINT point);
+
+	[DllImport("user32.dll")]
+	static extern bool ScreenToClient(IntPtr hWnd, ref POINT lpPoint);
+
+	public POINT GetRelativeCoordinates()
+	{
+		// ดึงพิกัดปัจจุบัน (ได้เป็น POINT ของเราเอง)
+		POINT screenPoint = GetCurrentCursorPosition();
+
+		// หา Handle ของหน้าต่างที่เมาส์ชี้อยู่
+		IntPtr hWnd = WindowFromPoint(screenPoint);
+
+		if (hWnd != IntPtr.Zero)
+		{
+			// ใช้ POINT ตัวเดิมในการแปลงค่า
+			POINT clientPoint = screenPoint;
+			ScreenToClient(hWnd, ref clientPoint);
+
+			// ตอนนี้ clientPoint.X และ Y จะกลายเป็นพิกัดเทียบกับหน้าต่างนั้นๆ แล้ว
+			Console.WriteLine($"Window Handle: {hWnd}");
+			Console.WriteLine($"Relative X: {clientPoint.X}, Y: {clientPoint.Y}");
+
+			return clientPoint;
+		}
+		else
+		{
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.WriteLine($"NOT FOUND WINDOWS");
+			Console.ResetColor();
+			return screenPoint;
+		}
+		
+	}
+
+	private POINT GetCurrentCursorPosition()
+	{
+		GetCursorPos(out POINT p);
+		return p;
+	}
+	#endregion
 
 	public void Dispose() => Stop();
 }

@@ -9,7 +9,7 @@
 @page "/task-auto"
 @using Microsoft.Extensions.Configuration
 @inject IConfiguration Configuration
-
+@inject IWebHostEnvironment Env
 
 randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery / @randomAdjustRound
 <div class="col-12 col-md-8 control-bar">
@@ -526,6 +526,9 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             // Subscribe event จาก Service
             HookService.OnSpacePressed += HandleSpacePressed;
             #endregion
+
+
+            MouseOperationsService.filePath = Path.Combine(Env.WebRootPath, "favicon.png"); ;
         }
         catch
         {
@@ -609,7 +612,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 {
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
                     var BotName = Configuration["DiscordSettings:BotName"];
-                    
+
                     await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
                     RoundRunning = 0;
                     processRecheckIfNotFound = 0;
@@ -716,8 +719,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                     await PlayJingleAsync();
                     var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
-                    MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
-                    await MouseOperationsService.LeftMouseClick();
+
+                    await MouseOperationsService.LeftMouseClickBackGround(CursorPosition.X, CursorPosition.Y);
+                    // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
+                    // await MouseOperationsService.LeftMouseClick();
                     await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
 
                     if (randomAdjustRound > 0)
