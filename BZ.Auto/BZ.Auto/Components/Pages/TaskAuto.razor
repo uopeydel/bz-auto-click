@@ -89,7 +89,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             <div class="d-flex flex-column align-items-center">
                 <label class="form-label small mb-1">Interval (ms)</label>
                 <input type="number" class="form-control form-control-sm" style="width:100px"
-                       @bind="intervalLoop" @bind:event="oninput" min="350" />
+                       @bind="intervalLoop" @bind:event="oninput" min="50" />
             </div>
         }
 
@@ -563,7 +563,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
     public int randomAdjustRound = 0;
     public int timeCount = 0;
     public int randomWait = 0;
-    public int intervalLoop = 350;
+    public int intervalLoop = 50;
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
     bool isStartLoop = false;
@@ -708,17 +708,19 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
                 if (Items[processNumber].IsFound)
                 {
-                    Console.ForegroundColor = ConsoleColor.Yellow;
-                    var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
-                    Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
-                    await Task.Delay(ranDomBeforeClick);
-                    Console.ResetColor();
+                   
 
                     await PlayJingleAsync();
                     var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
                     MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
                     await MouseOperationsService.LeftMouseClick();
                     await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+
+                    Console.ForegroundColor = ConsoleColor.Yellow;
+                    var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
+                    Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
+                    await Task.Delay(ranDomBeforeClick);
+                    Console.ResetColor();
 
                     if (randomAdjustRound > 0)
                     {
