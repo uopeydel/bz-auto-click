@@ -217,7 +217,7 @@ UI เปลี่ยน shade นิด ๆ
 				// config สำหรับตรวจความใกล้เคียง
 				// Confidence < 0.95 ความเหมือนน้อยกว่า 95 เปอเซน ไม่ผ่าน
 				// ถ้าตำแหน่งห่างกันเกิน 100 px ไม่ผ่าน
-				if (match.Confidence < 0.95 && (diffX > 100 || diffY > 100))
+				if (match.Confidence < 0.97 && (diffX > 100 || diffY > 100))
 				{
 					imageStep.IsFound = false;
 
@@ -365,60 +365,60 @@ UI เปลี่ยน shade นิด ๆ
 			// If bitmapSmall is not found, return (-1, -1)
 			return new Point(-1, -1);
 		}
-		public static bool IsLikely(Bitmap pictureBox1, Bitmap pictureBox2)
-		{
-			double result = GetSimilarityPercentage(pictureBox1, pictureBox2);
+		//public static bool IsLikely(Bitmap pictureBox1, Bitmap pictureBox2)
+		//{
+		//	double result = GetSimilarityPercentage(pictureBox1, pictureBox2);
 
-			if (result >= 90)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
+		//	if (result >= 98)
+		//	{
+		//		return true;
+		//	}
+		//	else
+		//	{
+		//		return false;
+		//	}
 
-		}
+		//}
 
 
 
-		public static double GetSimilarityPercentage(Bitmap bmp1, Bitmap bmp2)
-		{
-			if (bmp1.Size != bmp2.Size) return 0; // ขนาดไม่เท่ากัน ให้ความคล้ายเป็น 0
+		//public static double GetSimilarityPercentage(Bitmap bmp1, Bitmap bmp2)
+		//{
+		//	if (bmp1.Size != bmp2.Size) return 0; // ขนาดไม่เท่ากัน ให้ความคล้ายเป็น 0
 
-			int width = bmp1.Width;
-			int height = bmp1.Height;
-			int diffPixels = 0;
+		//	int width = bmp1.Width;
+		//	int height = bmp1.Height;
+		//	int diffPixels = 0;
 
-			// ใช้ LockBits เพื่อเข้าถึงข้อมูลใน Memory โดยตรง (เร็วกว่า GetPixel 100 เท่า)
-			BitmapData data1 = bmp1.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
-			BitmapData data2 = bmp2.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+		//	// ใช้ LockBits เพื่อเข้าถึงข้อมูลใน Memory โดยตรง (เร็วกว่า GetPixel 100 เท่า)
+		//	BitmapData data1 = bmp1.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
+		//	BitmapData data2 = bmp2.LockBits(new Rectangle(0, 0, width, height), ImageLockMode.ReadOnly, PixelFormat.Format32bppArgb);
 
-			int size = data1.Stride * data1.Height;
-			byte[] bytes1 = new byte[size];
-			byte[] bytes2 = new byte[size];
+		//	int size = data1.Stride * data1.Height;
+		//	byte[] bytes1 = new byte[size];
+		//	byte[] bytes2 = new byte[size];
 
-			Marshal.Copy(data1.Scan0, bytes1, 0, size);
-			Marshal.Copy(data2.Scan0, bytes2, 0, size);
+		//	Marshal.Copy(data1.Scan0, bytes1, 0, size);
+		//	Marshal.Copy(data2.Scan0, bytes2, 0, size);
 
-			bmp1.UnlockBits(data1);
-			bmp2.UnlockBits(data2);
+		//	bmp1.UnlockBits(data1);
+		//	bmp2.UnlockBits(data2);
 
-			// เปรียบเทียบทีละ Byte (BGRA)
-			for (int i = 0; i < size; i += 4)
-			{
-				// เช็คว่าค่าสี Blue, Green, Red ต่างกันไหม (ข้าม Alpha)
-				if (bytes1[i] != bytes2[i] || bytes1[i + 1] != bytes2[i + 1] || bytes1[i + 2] != bytes2[i + 2])
-				{
-					diffPixels++;
-				}
-			}
+		//	// เปรียบเทียบทีละ Byte (BGRA)
+		//	for (int i = 0; i < size; i += 4)
+		//	{
+		//		// เช็คว่าค่าสี Blue, Green, Red ต่างกันไหม (ข้าม Alpha)
+		//		if (bytes1[i] != bytes2[i] || bytes1[i + 1] != bytes2[i + 1] || bytes1[i + 2] != bytes2[i + 2])
+		//		{
+		//			diffPixels++;
+		//		}
+		//	}
 
-			int totalPixels = width * height;
-			double similarity = ((double)(totalPixels - diffPixels) / totalPixels) * 100;
+		//	int totalPixels = width * height;
+		//	double similarity = ((double)(totalPixels - diffPixels) / totalPixels) * 100;
 
-			return similarity;
-		}
+		//	return similarity;
+		//}
 		public static Point FindImagePosition(byte[] bigImageBytes, byte[] smallImageBytes)
 		{
 			using var msBig = new MemoryStream(bigImageBytes);

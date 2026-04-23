@@ -37,5 +37,9 @@
 
 		public double Confidence { get; set; } // 0-1
 		public double Scale { get; set; }   // scale ที่เจอ (1.0 = ขนาดเดิม)
+
+
+
+		public int ComboNotFound { get; set; }
 	}
 }

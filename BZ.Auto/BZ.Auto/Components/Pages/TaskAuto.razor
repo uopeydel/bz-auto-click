@@ -12,6 +12,10 @@
 
 
 randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery / @randomAdjustRound
+<br />
+<p class="@(comboNotFound > countAllForNotFound ? "text-danger" : "text-success")">
+    combo not found : @comboNotFound / @countAllForNotFound
+</p>
 <div class="col-12 col-md-8 control-bar">
 
     <!-- แถวที่ 1 -->
@@ -241,8 +245,9 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 </td>
 
                 <td>
-                    <p style="white-space: nowrap;">match: @((int)(pair.item.Confidence * 100)) %</p>
-                    <p style="white-space: nowrap;">scale: @((int)(pair.item.Scale * 100)) %</p>
+                    <p style="white-space: nowrap;margin :  0px !important;">match: @((int)(pair.item.Confidence * 100)) %</p>
+                    <p style="white-space: nowrap;margin :  0px !important;">scale: @((int)(pair.item.Scale * 100)) %</p>
+                    <p style="white-space: nowrap;color:red;margin :  0px !important;">combo: @((int)(pair.item.ComboNotFound))</p>
                 </td>
 
                 <!-- int fields -->
@@ -487,7 +492,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
     public string tableName = "ImageSteps";
     public int processNumber = 0;
     public int RoundRunning = 1;
-    public int RoundMax = 9999;
+    public int RoundMax = 1000;
     protected override async Task OnInitializedAsync()
     {
         // mock delay (เช่นโหลดจาก API)
@@ -566,6 +571,9 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
     public int intervalLoop = 350;
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
+
+    public int countAllForNotFound = 0;
+    public int comboNotFound = 0;
     bool isStartLoop = false;
     CancellationTokenSource _cts;
     async Task OnStartAutoAsync()
@@ -585,6 +593,9 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         isStartLoop = true;
         DateTime startTime = DateTime.Now;
         _cts = new CancellationTokenSource();
+
+        comboNotFound = 0;
+        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum();
 
         List<string> messages = new List<string>();
         while (!_cts.Token.IsCancellationRequested && isStartLoop)
@@ -703,13 +714,26 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     }
                 }
 
+                if (comboNotFound >= countAllForNotFound)
+                {
+                    var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
+                    var BotName = Configuration["DiscordSettings:BotName"];
+
+                    await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
+                    await Task.Delay(1000);
+                    await OnStopAutoAsync();
+                    continue;
+                }
                 Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
                 if (Items[processNumber].IsFound)
                 {
-
-
+                    if (Items[processNumber].ComboNotFound >=3)
+                    {
+                        comboNotFound = 0;
+                        Items[processNumber].ComboNotFound = 0;
+                    }
                     // await PlayJingleAsync();
                     var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
 
@@ -717,7 +741,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
 
                     MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
-                        speedPxPerSec: 12000, smoothness: 4);
+                        speedPxPerSec: 25000, smoothness: 6);
 
 
                     // Console.ForegroundColor = ConsoleColor.Yellow;
@@ -761,6 +785,12 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 }
                 else
                 {
+                    if (processNumber > 1)
+                    {
+                        comboNotFound++;
+                    }
+                    Items[processNumber].ComboNotFound++;
+
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"not found Process: {processNumber} | Recheck {processRecheckIfNotFound}");
                     Console.ResetColor();
