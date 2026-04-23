@@ -9,7 +9,7 @@ namespace BZ.Auto.Service
 
 	public static class ImageSearch
 	{
-
+		public static double Confidence { get; set; } = 0.97;
 		/*
 	  🎯 int tolerance = 10
 
@@ -161,6 +161,7 @@ UI เปลี่ยน shade นิด ๆ
 		//เอาไว้ใช้ค้นหาภาพจากทั้งหน้าจอ
 		public static ImageStepModel SearchEqualImageInScreen(ImageStepModel imageStep)
 		{
+			imageStep.Confidence = 0;
 			imageStep.IsFound = false;
 			imageStep.FoundTopLeftX = -1;
 			imageStep.FoundTopLeftY = -1;
@@ -197,7 +198,7 @@ UI เปลี่ยน shade นิด ๆ
 			// แคป template จาก region ที่ระบุ
 			var template = imageBaseCurrentStep;// ScreenCapture.CaptureRegion(tx1, ty1, tx2, ty2);
 
-			var match = TemplateMatcher.FindTemplate(screenshot, template, threshold: 0.85);
+			var match = TemplateMatcher.FindTemplate(screenshot, template, threshold: Confidence);
 			var isFound = match != null;
 			if (isFound)
 			{
@@ -217,7 +218,7 @@ UI เปลี่ยน shade นิด ๆ
 				// config สำหรับตรวจความใกล้เคียง
 				// Confidence < 0.95 ความเหมือนน้อยกว่า 95 เปอเซน ไม่ผ่าน
 				// ถ้าตำแหน่งห่างกันเกิน 100 px ไม่ผ่าน
-				if (match.Confidence < 0.97 && (diffX > 100 || diffY > 100))
+				if (match.Confidence < Confidence && (diffX > 100 || diffY > 100))
 				{
 					imageStep.IsFound = false;
 

@@ -595,7 +595,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         _cts = new CancellationTokenSource();
 
         comboNotFound = 0;
-        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum();
+        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum() * 2;
 
         List<string> messages = new List<string>();
         while (!_cts.Token.IsCancellationRequested && isStartLoop)
@@ -727,7 +727,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
-                if (Items[processNumber].IsFound)
+                if (Items[processNumber].IsFound && Items[processNumber].Confidence > ImageSearch.Confidence)
                 {
                     if (Items[processNumber].ComboNotFound >=3)
                     {
