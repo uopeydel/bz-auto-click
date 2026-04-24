@@ -621,7 +621,11 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
                     var BotName = Configuration["DiscordSettings:BotName"];
 
-                    await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
+                    await DiscordNotificationService.SendNotification(
+                        discordUrl, 
+                        BotName, 
+                        RoundRunning,
+                        "ติด Fource Stop Loop");
                     RoundRunning = 0;
                     processRecheckIfNotFound = 0;
                     processNumber = 0;
@@ -719,7 +723,11 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
                     var BotName = Configuration["DiscordSettings:BotName"];
 
-                    await DiscordNotificationService.SendNotification(discordUrl, BotName, RoundRunning);
+                    await DiscordNotificationService.SendNotification(
+                        discordUrl,
+                        BotName, 
+                        RoundRunning,
+                        "Combo Not Found");
                     await Task.Delay(1000);
                     await OnStopAutoAsync();
                     continue;

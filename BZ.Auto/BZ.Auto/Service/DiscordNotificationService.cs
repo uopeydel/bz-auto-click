@@ -5,7 +5,11 @@ namespace BZ.Auto.Service
 {
 	public class DiscordNotificationService
 	{
-		public static async Task SendNotification(string webhookUrl,string name ,int RoundRunning)
+		public static async Task SendNotification(
+			string webhookUrl,
+			string name,
+			int RoundRunning,
+			string description)
 		{
 			using var client = new HttpClient();
 
@@ -20,7 +24,7 @@ namespace BZ.Auto.Service
 					new
 					{
 						title = $"🚀 Bot ของคุณ {name} หยุดการทำงานแล้ว",
-						description = "ติด Fource Stop Loop",
+						description = description,
 						color = 15158332,// 3447003, // รหัสสี Decimal (สีฟ้า)
 						fields = new[]
 						{
