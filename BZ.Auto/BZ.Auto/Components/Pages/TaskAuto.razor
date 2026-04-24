@@ -233,14 +233,14 @@ randomWait : @randomWait  | timeCount: @timeCount
         @foreach (var pair in Items.Select((item, index) => new { item, index }))
         {
             <tr class="@(processNumber == pair.index ? pair.item.IsFound == true ? "row-selected" : "row-selected-error" : "")">
-                <td @onclick="() => OnIndexClick(pair.item, pair.index)" style="cursor:pointer">
+                <td @onclick="() => OnIndexClick(pair.item, pair.index)" style="cursor:pointer" disabled="@isLockSave">
                     @pair.index
                 </td>
 
                 <!-- BaseImage -->
                 <td>
 
-                    <button type="button" @onclick="() => OnImageClick(pair.item)" style="border:none; background:none; padding:0;">
+                    <button type="button" @onclick="() => OnImageClick(pair.item)" style="border:none; background:none; padding:0;" disabled="@isLockSave">
                         <img src="@GetImageSrc(pair.item.BaseImage)" width="200" height="50" style="cursor:pointer" />
                     </button>
 
