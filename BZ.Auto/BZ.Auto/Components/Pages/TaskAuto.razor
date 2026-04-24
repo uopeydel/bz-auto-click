@@ -73,7 +73,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Load</label>
             <button type="button" class="btn btn-primary btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnLoadAsync()">
+                    disabled="@(isStartLoop || HookService.IsActive || isLockSave)" @onclick="async () => await OnLoadAsync()">
                 📂 Load
             </button>
         </div>
@@ -82,10 +82,19 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Save</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnSaveAsync()">
+                    disabled="@(isStartLoop || HookService.IsActive || isLockSave)" @onclick="async () => await OnSaveAsync()">
                 💾 Save
             </button>
         </div>
+
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Lock Save</label>
+            <button type="button" class="btn btn-danger btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnLockSaveAsync()">
+                🔒 Lock Save
+            </button>
+        </div>
+
 
         <!-- Interval -->
         @if (false)
@@ -174,10 +183,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                 display: block;
-                                                                 width: 600px;
-                                                                 max-height: 800px;
-                                                                 object-fit: contain;" />
+                                                                             display: block;
+                                                                             width: 600px;
+                                                                             max-height: 800px;
+                                                                             object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -252,68 +261,68 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 <!-- int fields -->
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.TopLeftX"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftX), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.TopLeftY"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.TopLeftY), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.BotRightX"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightX), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.BotRightY"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.BotRightY), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.Interval"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.Interval), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.AfterClick"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.AfterClick), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.ReCheckInterval"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.ReCheckInterval), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepFound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepFound), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepNotFound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepNotFound), e.Value)" />
                 </td>
 
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepEveryToStep"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepEveryToStep), e.Value)" />
                 </td>
 
                 <td>
-                    <input type="number" class="form-control"
+                    <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepEveryRound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepEveryRound), e.Value)" />
                 </td>
@@ -321,19 +330,22 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 <!-- bool -->
                 <td class="text-center">
-                    <input type="checkbox"
+                    <input type="checkbox" disabled="@isLockSave"
                            checked="@pair.item.Active"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.Active), e.Value)" />
                 </td>
 
                 <td class="text-center">
-                    <input type="checkbox"
+                    <input type="checkbox" disabled="@isLockSave"
                            checked="@pair.item.FourceStopLoop"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.FourceStopLoop), e.Value)" />
                 </td>
 
                 <td>
-                    <button class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item)">Delete</button>
+                    <button disabled="@isLockSave"
+                            class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item)">
+                        Delete
+                    </button>
                 </td>
             </tr>
         }
@@ -575,6 +587,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
     public int countAllForNotFound = 0;
     public int comboNotFound = 0;
     bool isStartLoop = false;
+    bool isLockSave = true;
     CancellationTokenSource _cts;
     async Task OnStartAutoAsync()
     {
@@ -595,7 +608,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         _cts = new CancellationTokenSource();
 
         comboNotFound = 0;
-        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum() * 2;
+        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum() * 3;
 
         List<string> messages = new List<string>();
         while (!_cts.Token.IsCancellationRequested && isStartLoop)
@@ -622,8 +635,8 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     var BotName = Configuration["DiscordSettings:BotName"];
 
                     await DiscordNotificationService.SendNotification(
-                        discordUrl, 
-                        BotName, 
+                        discordUrl,
+                        BotName,
                         RoundRunning,
                         "ติด Fource Stop Loop");
                     RoundRunning = 0;
@@ -676,7 +689,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                 if (RandomIntBetween == 0)
                 {
-                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2); 
+                    RandomIntBetween = MouseClickHelper.RandomIntBetween(0, 2);
                 }
 
                 bool isStillWaitForInterval = false;
@@ -685,14 +698,14 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 {
                     isStillWaitForInterval = timeCount <
                     MouseClickHelper.ConvertSecondToMilisecond(beforeClickInterval) +
-                    RandomIntBetween; 
-                } 
+                    RandomIntBetween;
+                }
 
                 // Console.WriteLine("Check isStillWaitForInterval");
                 if (isStillWaitForInterval)
                 {
                     await Task.Delay(intervalLoop);
-                    timeCount += intervalLoop; 
+                    timeCount += intervalLoop;
                     continue;
                 }
 
@@ -703,7 +716,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Console.ResetColor();
 
 
-                Console.ForegroundColor = ConsoleColor.Magenta; 
+                Console.ForegroundColor = ConsoleColor.Magenta;
                 Console.WriteLine($"TimeCount before check image {timeCount} ms");
                 Console.ResetColor();
                 if (processNumber == 0)
@@ -725,7 +738,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                     await DiscordNotificationService.SendNotification(
                         discordUrl,
-                        BotName, 
+                        BotName,
                         RoundRunning,
                         "Combo Not Found");
                     await Task.Delay(1000);
@@ -737,7 +750,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
                 if (Items[processNumber].IsFound && Items[processNumber].Confidence > ImageSearch.Confidence)
                 {
-                    if (Items[processNumber].ComboNotFound >=3)
+                    if (Items[processNumber].ComboNotFound >= 3)
                     {
                         comboNotFound = 0;
                         Items[processNumber].ComboNotFound = 0;
@@ -767,10 +780,10 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
 
                     }
                     else
-                    { 
-                        randomAdjustRound = 
+                    {
+                        randomAdjustRound =
                             Items[processNumber].NextStepEveryRound +
-                            MouseClickHelper.RandomIntBetween(0, Items[processNumber].NextStepEveryRound ,1);
+                            MouseClickHelper.RandomIntBetween(0, Items[processNumber].NextStepEveryRound, 1);
                     }
                     if (countForEvery >= randomAdjustRound
                         && Items[processNumber].NextStepEveryToStep > 0)
@@ -782,7 +795,7 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     else
                     {
                         if (processNumber == 0)
-                        { 
+                        {
                             countForEvery++;
                         }
                         processNumber = Items[processNumber].NextStepFound;
@@ -830,6 +843,14 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
         await SQLiteContext.InsertImageStep(Items, tableName);
 
     }
+
+
+    async Task OnLockSaveAsync()
+    {
+        isLockSave = !isLockSave;
+
+    }
+
     async Task OnLoadAsync()
     {
         Items = await SQLiteContext.GetAll(tableName);
