@@ -11,7 +11,7 @@
 @inject IConfiguration Configuration
 
 
-randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery / @randomAdjustRound
+randomWait : @randomWait  | timeCount: @timeCount
 <br />
 <p class="@(comboNotFound > countAllForNotFound ? "text-danger" : "text-success")">
     combo not found : @comboNotFound / @countAllForNotFound
@@ -319,12 +319,15 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepEveryToStep"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepEveryToStep), e.Value)" />
+
                 </td>
 
                 <td>
                     <input type="number" class="form-control" disabled="@isLockSave"
                            value="@pair.item.NextStepEveryRound"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.NextStepEveryRound), e.Value)" />
+
+                    <p style="white-space: nowrap;color:red;margin :  0px !important;">@((int)(pair.item.NextStepEveryRoundCount)) / @((int)(pair.item.NextStepEveryRoundRandomAdjustRound))</p>
                 </td>
 
 
@@ -576,8 +579,8 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
             FourceStopLoop = false
         });
     }
-    public int countForEvery = 0;
-    public int randomAdjustRound = 0;
+    // public int countForEvery = 0;
+    // public int randomAdjustRound = 0;
     public int timeCount = 0;
     public int randomWait = 0;
     public int intervalLoop = 350;
@@ -775,29 +778,38 @@ randomWait : @randomWait  | timeCount: @timeCount | RandomEvery: @countForEvery 
                     await MouseOperationsService.LeftMouseClick();
                     await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
 
-                    if (randomAdjustRound > 0)
+                    // ถ้ามีการตั้ง เลขรอบที่จะไปที่อื่น
+                    // และยังไม่ได้ random adjust round
+                    if (Items[processNumber].NextStepEveryRoundRandomAdjustRound == 0
+                            && Items[processNumber].NextStepEveryRound > 0)
                     {
-
-                    }
-                    else
-                    {
-                        randomAdjustRound =
+                        // ทำการ random adjust round max
+                        Items[processNumber].NextStepEveryRoundRandomAdjustRound =
                             Items[processNumber].NextStepEveryRound +
                             MouseClickHelper.RandomIntBetween(0, Items[processNumber].NextStepEveryRound, 1);
                     }
-                    if (countForEvery >= randomAdjustRound
-                        && Items[processNumber].NextStepEveryToStep > 0)
+
+                    // เมื่อจำนวนรอบที่วนผ่านมาเจอรูปนี้ มากกว่า max รอบที่กำหนด
+                    // และจำนวนรอบ ที่ตั้งไว้ตอนแรก มากกว่า 0 ก็คือมีการกำหนดรอบ
+                    if (Items[processNumber].NextStepEveryRoundCount >= Items[processNumber].NextStepEveryRoundRandomAdjustRound
+                        && Items[processNumber].NextStepEveryRound > 0)
                     {
-                        randomAdjustRound = 0;
-                        countForEvery = 0;
+                        // เคลียค่าการนับรอบ
+                        Items[processNumber].NextStepEveryRoundRandomAdjustRound = 0;
+                        Items[processNumber].NextStepEveryRoundCount = 0;
+
+                        //ไปหาตำแหน่ง process ที่กำหนดไว้
                         processNumber = Items[processNumber].NextStepEveryToStep;
                     }
                     else
                     {
-                        if (processNumber == 0)
+                        //ถ้ามีตั้งจำนวนรอบไว้ ถึงจะนับรอบผ่านทาง
+                        if (Items[processNumber].NextStepEveryRound > 0)
                         {
-                            countForEvery++;
+                            // เมื่อ IsFound แล้ว ของโปรเซสนี้ จะ นับว่า ผ่านมาทางนี้แล้วกี่รอบ
+                            Items[processNumber].NextStepEveryRoundCount++;
                         }
+
                         processNumber = Items[processNumber].NextStepFound;
                     }
                     processRecheckIfNotFound = 0;

@@ -19,6 +19,11 @@
 		public int NextStepEveryToStep { get; set; }
 		public int NextStepEveryRound { get; set; }
 
+
+		public int NextStepEveryRoundCount { get; set; }
+		public int NextStepEveryRoundRandomAdjustRound { get; set; }
+		
+
 		public bool Active { get; set; }
 
 		public bool FourceStopLoop { get; set; }
