@@ -21,6 +21,24 @@ randomWait : @randomWait  | timeCount: @timeCount
     <!-- แถวที่ 1 -->
     <div class="d-flex flex-wrap gap-2 align-items-end">
 
+         <!-- Next Munite shut down -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Next Minute Shutdown</label>
+            <input type="number" class="form-control form-control-sm" style="width:100px"
+                   @bind="NextMinuteShutdown"   />
+        </div>
+
+        <!-- Add -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">Set Shutdown</label>
+            <button type="button" class="btn btn-danger btn-sm" style="width:100px"
+                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnSetShutdown()">
+                ⏰ Set Shutdown
+            </button>
+        </div>
+
+
+
         <!-- Volume -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Volume</label>
@@ -55,7 +73,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Start</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnStartAutoAsync()">
+                    disabled="@((isStartLoop || HookService.IsActive || !isLockSave))" @onclick="async () => await OnStartAutoAsync()">
                 🔄 Start
             </button>
         </div>
@@ -579,6 +597,42 @@ randomWait : @randomWait  | timeCount: @timeCount
             FourceStopLoop = false
         });
     }
+
+    int NextMinuteShutdown = 120;
+    async Task OnSetShutdown()
+    {
+
+        try
+        {
+            DateTime now = DateTime.Now;
+            DateTime targetTime = now.AddMinutes(NextMinuteShutdown); // เวลาที่ต้องการเทียบ
+        
+
+            double diffSeconds = (now - targetTime).TotalSeconds;
+
+            Console.WriteLine($"Shut down in {diffSeconds}");
+
+
+            var psi = new System.Diagnostics.ProcessStartInfo("shutdown", $"-s -f -t {diffSeconds}");
+            psi.CreateNoWindow = true;
+            psi.UseShellExecute = false;
+            System.Diagnostics.Process.Start(psi);
+
+            var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
+            var BotName = Configuration["DiscordSettings:BotName"];
+
+            await DiscordNotificationService.SendNotification(
+                discordUrl,
+                BotName,
+                RoundRunning,
+                $"Shut down in {diffSeconds}");
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine(ex);
+        }
+    }
+
     // public int countForEvery = 0;
     // public int randomAdjustRound = 0;
     public int timeCount = 0;
@@ -629,6 +683,8 @@ randomWait : @randomWait  | timeCount: @timeCount
                     //psi.UseShellExecute = false;
                     //Process.Start(psi);
                     // await OnStopAutoAsync();
+
+                   
                 }
 
 
@@ -765,7 +821,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                     //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
 
                     MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
-                        speedPxPerSec: 25000, smoothness: 6);
+                        speedPxPerSec: 30000, smoothness: 6);
 
 
                     // Console.ForegroundColor = ConsoleColor.Yellow;
