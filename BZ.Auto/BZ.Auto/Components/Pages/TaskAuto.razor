@@ -28,6 +28,14 @@ randomWait : @randomWait  | timeCount: @timeCount
                    @bind="NextMinuteShutdown"   />
         </div>
 
+          <!-- confident -->
+        <div class="d-flex flex-column align-items-center">
+            <label class="form-label small mb-1">confidentn</label>
+            <input type="number" class="form-control form-control-sm" style="width:100px"
+                   @bind="Confident" max="100" min="90" />
+        </div>
+
+
         <!-- Add -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Set Shutdown</label>
@@ -70,7 +78,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         </div>
 
         <!-- Start -->
-        <div class="d-flex flex-column align-items-center">
+        <div class="d-flex flex-column align-items-center" >
             <label class="form-label small mb-1">Start</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
                     disabled="@((isStartLoop || HookService.IsActive || !isLockSave))" @onclick="async () => await OnStartAutoAsync()">
@@ -115,12 +123,12 @@ randomWait : @randomWait  | timeCount: @timeCount
 
 
         <!-- Interval -->
-        @if (false)
+        @if (true)
         {
             <div class="d-flex flex-column align-items-center">
                 <label class="form-label small mb-1">Interval (ms)</label>
                 <input type="number" class="form-control form-control-sm" style="width:100px"
-                       @bind="intervalLoop" @bind:event="oninput" min="350" />
+                       @bind="intervalLoop" @bind:event="oninput" min="5" />
             </div>
         }
 
@@ -201,10 +209,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                             display: block;
-                                                                             width: 600px;
-                                                                             max-height: 800px;
-                                                                             object-fit: contain;" />
+                                                                                     display: block;
+                                                                                     width: 600px;
+                                                                                     max-height: 800px;
+                                                                                     object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -522,10 +530,11 @@ randomWait : @randomWait  | timeCount: @timeCount
     #endregion
 
 
+    int Confident = 99;
     public string tableName = "ImageSteps";
     public int processNumber = 0;
     public int RoundRunning = 1;
-    public int RoundMax = 1000;
+    public int RoundMax = 9000;
     protected override async Task OnInitializedAsync()
     {
         // mock delay (เช่นโหลดจาก API)
@@ -606,7 +615,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         {
             DateTime now = DateTime.Now;
             DateTime targetTime = now.AddMinutes(NextMinuteShutdown); // เวลาที่ต้องการเทียบ
-        
+
 
             double diffSeconds = (now - targetTime).TotalSeconds;
 
@@ -637,7 +646,7 @@ randomWait : @randomWait  | timeCount: @timeCount
     // public int randomAdjustRound = 0;
     public int timeCount = 0;
     public int randomWait = 0;
-    public int intervalLoop = 350;
+    public int intervalLoop = 5;
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
 
@@ -648,6 +657,7 @@ randomWait : @randomWait  | timeCount: @timeCount
     CancellationTokenSource _cts;
     async Task OnStartAutoAsync()
     {
+        ImageSearch.Confidence = (((double)Confident) / (double)100);
         await JS.InvokeVoidAsync("unlockAudio");
 
 
@@ -684,7 +694,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                     //Process.Start(psi);
                     // await OnStopAutoAsync();
 
-                   
+
                 }
 
 
@@ -800,7 +810,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                         BotName,
                         RoundRunning,
                         "Combo Not Found");
-                    await Task.Delay(1000);
+                    await Task.Delay(500);
                     await OnStopAutoAsync();
                     continue;
                 }
@@ -819,9 +829,10 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                     var current = MouseOperationsService.GetCursorPosition();
                     //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
-
-                    MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
-                        speedPxPerSec: 30000, smoothness: 6);
+                    await Task.Delay(30);
+                    MouseMover.MoveAbsolute(CursorPosition.X, CursorPosition.Y);
+                    // // // MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
+                    // // //    speedPxPerSec: 50000, smoothness: 6);
 
 
                     // Console.ForegroundColor = ConsoleColor.Yellow;
@@ -832,7 +843,9 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                     // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
                     await MouseOperationsService.LeftMouseClick();
-                    await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+if(Items[processNumber].AfterClick > 0){
+                        await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+                    }
 
                     // ถ้ามีการตั้ง เลขรอบที่จะไปที่อื่น
                     // และยังไม่ได้ random adjust round

@@ -41,7 +41,7 @@ public static class MouseMover
 	static int NormalizeY(int y)
 		=> (int)Math.Round(y * 65535.0 / GetSystemMetrics(SM_CYSCREEN));
 
-	static void MoveAbsolute(int x, int y)
+	public static void MoveAbsolute(int x, int y)
 	{
 		var input = new INPUT
 		{

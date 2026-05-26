@@ -9,7 +9,7 @@ namespace BZ.Auto.Service
 
 	public static class ImageSearch
 	{
-		public static double Confidence { get; set; } = 0.97;
+		public static double Confidence { get; set; } = 0.90;
 		/*
 	  🎯 int tolerance = 10
 
