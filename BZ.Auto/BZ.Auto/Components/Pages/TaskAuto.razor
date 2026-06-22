@@ -376,7 +376,7 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                 <td>
                     <button disabled="@isLockSave"
-                            class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item)">
+                            class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item , pair.index)">
                         Delete
                     </button>
                 </td>
@@ -584,8 +584,17 @@ randomWait : @randomWait  | timeCount: @timeCount
         }
     }
 
-    void Remove(ImageStepModel item)
+    void Remove(ImageStepModel item , int indx)
     {
+        for (int i = 0; i < Items.Count; i++)
+        {
+            if (i > indx)
+            {
+                Items[i].NextStepEveryToStep--; 
+                Items[i].NextStepFound--;
+                Items[i].NextStepNotFound--;
+            }
+        }
         Items.Remove(item);
     }
 

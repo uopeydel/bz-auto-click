@@ -34,16 +34,16 @@ namespace BZ.Auto.Service
 			using var reader = await command.ExecuteReaderAsync();
 
 			while (await reader.ReadAsync())
-			{ 
+			{
 				var name = reader.GetString(0);
 				list.Add(name);
 			}
 
-			list = list.Where(w=> w != "sqlite_sequence").ToList();
+			list = list.Where(w => w != "sqlite_sequence").ToList();
 			return list;
 		}
-		public static async Task InsertImageStep(List<ImageStepModel> models , string tableNamee = "ImageSteps")
-		{ 
+		public static async Task InsertImageStep(List<ImageStepModel> models, string tableNamee = "ImageSteps")
+		{
 			using var connection = new SqliteConnection("Data Source=app.db");
 			await connection.OpenAsync();
 
@@ -73,6 +73,7 @@ namespace BZ.Auto.Service
     NextStepEveryToStep INTEGER,
     NextStepEveryRound INTEGER,
     Active INTEGER,
+	IsClick  INTEGER,
     FourceStopLoop INTEGER
 );";
 
@@ -100,6 +101,7 @@ namespace BZ.Auto.Service
             NextStepEveryToStep,
             NextStepEveryRound,
             Active,
+			IsClick,
 			FourceStopLoop 
         )
         VALUES (
@@ -117,6 +119,7 @@ namespace BZ.Auto.Service
             @NextStepEveryToStep,
             @NextStepEveryRound,
             @Active,
+			@IsClick,
 			@FourceStopLoop  
         );
     ";
@@ -135,6 +138,8 @@ namespace BZ.Auto.Service
 				command.Parameters.AddWithValue("@NextStepEveryToStep", models[i].NextStepEveryToStep);
 				command.Parameters.AddWithValue("@NextStepEveryRound", models[i].NextStepEveryRound);
 				command.Parameters.AddWithValue("@Active", models[i].Active ? 1 : 0);
+				command.Parameters.AddWithValue("@IsClick", models[i].IsClick ? 1 : 0);
+
 				command.Parameters.AddWithValue("@FourceStopLoop", models[i].FourceStopLoop ? 1 : 0);
 
 				await command.ExecuteNonQueryAsync();
@@ -190,6 +195,7 @@ SELECT
     t.NextStepEveryToStep,
     t.NextStepEveryRound,
     t.Active,
+	t.IsClick,
     t.FourceStopLoop
 FROM {tableNamee} t ";
 
@@ -212,8 +218,9 @@ FROM {tableNamee} t ";
 					var NextStepNotFound = reader.GetInt32(10);
 					var NextStepEveryToStep = reader.GetInt32(11);
 					var NextStepEveryRound = reader.GetInt32(12);
-					var Active = reader.GetInt32(13) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
-					var FourceStopLoop = reader.GetInt32(14) == 1; // อ่านค่าจริงจาก DB (Index 11 คือ Active)
+					var Active = reader.GetInt32(13) == 1;
+					var IsClick = reader.GetInt32(14) == 1;
+					var FourceStopLoop = reader.GetInt32(15) == 1;
 
 					list.Add(new ImageStepModel
 					{
@@ -231,6 +238,7 @@ FROM {tableNamee} t ";
 						NextStepEveryToStep = NextStepEveryToStep,
 						NextStepEveryRound = NextStepEveryRound,
 						Active = Active,
+						IsClick = IsClick,
 						FourceStopLoop = FourceStopLoop
 					});
 				}
