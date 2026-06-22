@@ -562,6 +562,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                 NextStepEveryRound = 0,
                 NextStepEveryToStep = 0,
                 Active = true,
+            IsClick = true,
                 FourceStopLoop = false
             }
         };
@@ -625,6 +626,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             NextStepEveryRound = 0,
             NextStepEveryToStep = 0,
             Active = true,
+            IsClick = true,
             FourceStopLoop = false
         });
     }
@@ -1019,6 +1021,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                 NextStepEveryRound = 0,
                 NextStepEveryToStep = 0,
             Active = true,
+            IsClick = true,
             FourceStopLoop = false
         }
     };
@@ -1134,6 +1137,9 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                 case nameof(ImageStepModel.Active):
                     item.Active = Convert.ToBoolean(value);
+                    break;
+                case nameof(ImageStepModel.IsClick):
+                    item.IsClick = Convert.ToBoolean(value);
                     break;
                 case nameof(ImageStepModel.FourceStopLoop):
                     item.FourceStopLoop = Convert.ToBoolean(value);
