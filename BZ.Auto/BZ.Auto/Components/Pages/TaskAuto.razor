@@ -588,12 +588,21 @@ randomWait : @randomWait  | timeCount: @timeCount
     {
         for (int i = 0; i < Items.Count; i++)
         {
-            if (i > indx)
+            if (Items[i].NextStepEveryToStep > indx)
             {
-                Items[i].NextStepEveryToStep--; 
+                Items[i].NextStepEveryToStep--;  
+            }
+
+            if (Items[i].NextStepFound > indx)
+            {
                 Items[i].NextStepFound--;
+            }
+
+            if (Items[i].NextStepNotFound > indx)
+            {
                 Items[i].NextStepNotFound--;
             }
+ 
         }
         Items.Remove(item);
     }
