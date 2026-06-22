@@ -30,6 +30,7 @@
 
 
 
+		public bool IsClick { get; set; } = true;
 
 		public bool IsFound { get; set; }= false;
 		public int FoundTopLeftX { get; set; }

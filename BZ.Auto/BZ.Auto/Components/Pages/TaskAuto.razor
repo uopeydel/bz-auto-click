@@ -21,14 +21,14 @@ randomWait : @randomWait  | timeCount: @timeCount
     <!-- แถวที่ 1 -->
     <div class="d-flex flex-wrap gap-2 align-items-end">
 
-         <!-- Next Munite shut down -->
+        <!-- Next Munite shut down -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Next Minute Shutdown</label>
             <input type="number" class="form-control form-control-sm" style="width:100px"
-                   @bind="NextMinuteShutdown"   />
+                   @bind="NextMinuteShutdown" />
         </div>
 
-          <!-- confident -->
+        <!-- confident -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">confidentn</label>
             <input type="number" class="form-control form-control-sm" style="width:100px"
@@ -78,7 +78,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         </div>
 
         <!-- Start -->
-        <div class="d-flex flex-column align-items-center" >
+        <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Start</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
                     disabled="@((isStartLoop || HookService.IsActive || !isLockSave))" @onclick="async () => await OnStartAutoAsync()">
@@ -209,10 +209,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                                     display: block;
-                                                                                     width: 600px;
-                                                                                     max-height: 800px;
-                                                                                     object-fit: contain;" />
+                                                                                         display: block;
+                                                                                         width: 600px;
+                                                                                         max-height: 800px;
+                                                                                         object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -362,6 +362,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                     <input type="checkbox" disabled="@isLockSave"
                            checked="@pair.item.Active"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.Active), e.Value)" />
+                    <input type="checkbox" disabled="@isLockSave"
+                           checked="@pair.item.IsClick"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.IsClick), e.Value)" />
+                    
                 </td>
 
                 <td class="text-center">
@@ -817,36 +821,44 @@ randomWait : @randomWait  | timeCount: @timeCount
                 Items[processNumber] = ImageSearch.SearchEqualImageInScreen(Items[processNumber]);
 
                 Console.WriteLine($"Process {processNumber} : IsFound : {Items[processNumber].IsFound}");
-                if (Items[processNumber].IsFound && Items[processNumber].Confidence > ImageSearch.Confidence)
+                var isFound = Items[processNumber].IsFound;
+                var itemConfidenceOverSetting = Items[processNumber].Confidence > ImageSearch.Confidence;
+                if (isFound && itemConfidenceOverSetting)
                 {
                     if (Items[processNumber].ComboNotFound >= 3)
                     {
                         comboNotFound = 0;
                         Items[processNumber].ComboNotFound = 0;
                     }
-                    // await PlayJingleAsync();
-                    var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
+                    if (Items[processNumber].IsClick)
+                    {
 
-                    var current = MouseOperationsService.GetCursorPosition();
-                    //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
-                    await Task.Delay(30);
-                    MouseMover.MoveAbsolute(CursorPosition.X, CursorPosition.Y);
-                    // // // MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
-                    // // //    speedPxPerSec: 50000, smoothness: 6);
+                        // await PlayJingleAsync();
+                        var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
+
+                        var current = MouseOperationsService.GetCursorPosition();
+                        //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
+
+                        await Task.Delay(30);
+                        MouseMover.MoveAbsolute(CursorPosition.X, CursorPosition.Y);
+                        // // // MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
+                        // // //    speedPxPerSec: 50000, smoothness: 6);
 
 
-                    // Console.ForegroundColor = ConsoleColor.Yellow;
-                    // var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
-                    // Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
-                    // await Task.Delay(ranDomBeforeClick);
-                    // Console.ResetColor();
+                        // Console.ForegroundColor = ConsoleColor.Yellow;
+                        // var ranDomBeforeClick = MouseClickHelper.RandomIntBetween(0, 6, 50);
+                        // Console.WriteLine($"Random Before Click {ranDomBeforeClick} ms");
+                        // await Task.Delay(ranDomBeforeClick);
+                        // Console.ResetColor();
 
-                    // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
-                    await MouseOperationsService.LeftMouseClick();
-if(Items[processNumber].AfterClick > 0){
-                        await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+                        // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
+                        await MouseOperationsService.LeftMouseClick();
+                        if (Items[processNumber].AfterClick > 0)
+                        {
+                            await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+                        }
+
                     }
-
                     // ถ้ามีการตั้ง เลขรอบที่จะไปที่อื่น
                     // และยังไม่ได้ random adjust round
                     if (Items[processNumber].NextStepEveryRoundRandomAdjustRound == 0
@@ -917,12 +929,25 @@ if(Items[processNumber].AfterClick > 0){
     }
     async Task OnSaveAsync()
     {
-        if (Items.Count == 1)
-        {
-            return;
-        }
-        await SQLiteContext.InsertImageStep(Items, tableName);
+        bool confirmed = await JS.InvokeAsync<bool>("confirm",
+            "Confirm save?");
 
+        if (confirmed)
+        {
+            // กด OK
+            Console.WriteLine("Save");
+            if (Items.Count == 1)
+            {
+                return;
+            }
+            await SQLiteContext.InsertImageStep(Items, tableName);
+
+        }
+        else
+        {
+            // กด Cancel
+            Console.WriteLine("Cancel");
+        }
     }
 
 
