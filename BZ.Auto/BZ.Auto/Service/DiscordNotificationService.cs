@@ -11,6 +11,14 @@ namespace BZ.Auto.Service
 			int RoundRunning,
 			string description)
 		{
+			if (string.IsNullOrEmpty(webhookUrl))
+			{
+				return;
+			}
+			if (string.IsNullOrEmpty(name))
+			{
+				return;
+			}
 			using var client = new HttpClient();
 
 			// สร้างโครงสร้างข้อมูลสำหรับ Embed (เลียนแบบหน้าตา Spidey Hook)

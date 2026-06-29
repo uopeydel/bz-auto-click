@@ -13,8 +13,8 @@
 
 randomWait : @randomWait  | timeCount: @timeCount
 <br />
-<p class="@(comboNotFound > countAllForNotFound ? "text-danger" : "text-success")">
-    combo not found : @comboNotFound / @countAllForNotFound
+<p class="@(comboNotFound > limitForComboNotFound ? "text-danger" : "text-success")">
+    combo not found : @comboNotFound / @limitForComboNotFound
 </p>
 <div class="col-12 col-md-8 control-bar">
 
@@ -568,7 +568,13 @@ randomWait : @randomWait  | timeCount: @timeCount
         };
 
         try
-        {
+        { 
+
+            string? _tableName =await JS.InvokeAsync<string>(
+                "localStorageHelper.getItem",
+                "tableName");
+            tableName = _tableName;
+ 
             ValueAutoCompleteTableName = tableName;
             var tableN = await SQLiteContext.ListTableName();
             ItemsTableName = filteredItemsTableName = tableN;
@@ -603,7 +609,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             {
                 Items[i].NextStepNotFound--;
             }
- 
+
         }
         Items.Remove(item);
     }
@@ -674,7 +680,7 @@ randomWait : @randomWait  | timeCount: @timeCount
     public int processRecheckIfNotFound = 0;
     public int processRecheckIfNotFoundMax = 3;
 
-    public int countAllForNotFound = 0;
+    public int limitForComboNotFound = 0;
     public int comboNotFound = 0;
     bool isStartLoop = false;
     bool isLockSave = true;
@@ -699,7 +705,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         _cts = new CancellationTokenSource();
 
         comboNotFound = 0;
-        countAllForNotFound = Items.Select(s => s.ReCheckInterval).Sum() * 3;
+        limitForComboNotFound = Items.Select(s => s.ReCheckInterval).Sum() * 3;
 
         List<string> messages = new List<string>();
         while (!_cts.Token.IsCancellationRequested && isStartLoop)
@@ -824,7 +830,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                     }
                 }
 
-                if (comboNotFound >= countAllForNotFound)
+                if (comboNotFound >= limitForComboNotFound)
                 {
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
                     var BotName = Configuration["DiscordSettings:BotName"];
@@ -845,13 +851,14 @@ randomWait : @randomWait  | timeCount: @timeCount
                 var itemConfidenceOverSetting = Items[processNumber].Confidence > ImageSearch.Confidence;
                 if (isFound && itemConfidenceOverSetting)
                 {
-                    if (Items[processNumber].ComboNotFound >= 3)
-                    {
-                        comboNotFound = 0;
-                        Items[processNumber].ComboNotFound = 0;
-                    }
+
                     if (Items[processNumber].IsClick)
                     {
+                        if (Items[processNumber].ComboNotFound >= 3)
+                        {
+                            comboNotFound = 0;
+                            Items[processNumber].ComboNotFound = 0;
+                        }
 
                         // await PlayJingleAsync();
                         var CursorPosition = MouseClickHelper.GetRandomPointInRectangle(Items[processNumber]);
@@ -919,11 +926,19 @@ randomWait : @randomWait  | timeCount: @timeCount
                 }
                 else
                 {
-                    if (processNumber > 1)
+                    if (Items[processNumber].IsClick)
                     {
-                        comboNotFound++;
+                        if (processNumber > 1)
+                        {
+                            comboNotFound++;
+                        }
+                        Items[processNumber].ComboNotFound++;
                     }
-                    Items[processNumber].ComboNotFound++;
+                    else
+                    {
+                        limitForComboNotFound++;
+                    }
+
 
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine($"not found Process: {processNumber} | Recheck {processRecheckIfNotFound}");
@@ -979,6 +994,10 @@ randomWait : @randomWait  | timeCount: @timeCount
 
     async Task OnLoadAsync()
     {
+        await JS.InvokeVoidAsync(
+                "localStorageHelper.setItem",
+                "tableName",
+                tableName);
         Items = await SQLiteContext.GetAll(tableName);
     }
     async Task OnDropTableAsync()
