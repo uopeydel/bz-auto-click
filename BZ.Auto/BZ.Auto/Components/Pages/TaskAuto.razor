@@ -573,8 +573,11 @@ randomWait : @randomWait  | timeCount: @timeCount
             string? _tableName =await JS.InvokeAsync<string>(
                 "localStorageHelper.getItem",
                 "tableName");
-            tableName = _tableName;
- 
+            if (!string.IsNullOrEmpty(_tableName))
+            {
+                tableName = _tableName; 
+            }
+
             ValueAutoCompleteTableName = tableName;
             var tableN = await SQLiteContext.ListTableName();
             ItemsTableName = filteredItemsTableName = tableN;
@@ -647,7 +650,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             DateTime targetTime = now.AddMinutes(NextMinuteShutdown); // เวลาที่ต้องการเทียบ
 
 
-            double diffSeconds = (now - targetTime).TotalSeconds;
+            int diffSeconds = NextMinuteShutdown * 60;
 
             Console.WriteLine($"Shut down in {diffSeconds}");
 
@@ -655,7 +658,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             var psi = new System.Diagnostics.ProcessStartInfo("shutdown", $"-s -f -t {diffSeconds}");
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
-            System.Diagnostics.Process.Start(psi);
+                System.Diagnostics.Process.Start(psi);
 
             var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
             var BotName = Configuration["DiscordSettings:BotName"];
@@ -664,7 +667,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                 discordUrl,
                 BotName,
                 RoundRunning,
-                $"Shut down in {diffSeconds}");
+                $"Shut down in {targetTime.ToString("yyyy-MM-dd HH:mm:sss")}");
         }
         catch (Exception ex)
         {
@@ -682,9 +685,9 @@ randomWait : @randomWait  | timeCount: @timeCount
 
     public int limitForComboNotFound = 0;
     public int comboNotFound = 0;
-    bool isStartLoop = false;
+    static bool isStartLoop = false;
     bool isLockSave = true;
-    CancellationTokenSource _cts;
+    static CancellationTokenSource _cts;
     async Task OnStartAutoAsync()
     {
         ImageSearch.Confidence = (((double)Confident) / (double)100);
