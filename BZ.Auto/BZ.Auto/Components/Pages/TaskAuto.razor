@@ -138,7 +138,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             <div class="autocomplete-wrapper d-flex gap-1 align-items-center" @ref="wrapperRef">
                 <input type="text"
                        class="form-control form-control-sm"
-                       style="width:160px"
+                       style="width:360px"
                        value="@ValueAutoCompleteTableName"
                        @oninput="OnInput"
                        @onfocus="OnFocus"
@@ -209,10 +209,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                                         display: block;
-                                                                                         width: 600px;
-                                                                                         max-height: 800px;
-                                                                                         object-fit: contain;" />
+                                                                                             display: block;
+                                                                                             width: 600px;
+                                                                                             max-height: 800px;
+                                                                                             object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -365,7 +365,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                     <input type="checkbox" disabled="@isLockSave"
                            checked="@pair.item.IsClick"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.IsClick), e.Value)" />
-                    
+
                 </td>
 
                 <td class="text-center">
@@ -376,7 +376,7 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                 <td>
                     <button disabled="@isLockSave"
-                            class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item , pair.index)">
+                            class="btn btn-danger btn-sm" @onclick="() => Remove(pair.item, pair.index)">
                         Delete
                     </button>
                 </td>
@@ -568,14 +568,24 @@ randomWait : @randomWait  | timeCount: @timeCount
         };
 
         try
-        { 
-
-            string? _tableName =await JS.InvokeAsync<string>(
+        {
+            string? _RoundMax = await JS.InvokeAsync<string>(
+                            "localStorageHelper.getItem",
+                            "RoundMax");
+            if (!string.IsNullOrEmpty(_RoundMax))
+            {
+                var isRoundMaxInt = int.TryParse(_RoundMax, out int __RoundMax);
+                if (isRoundMaxInt)
+                {
+                    RoundMax = __RoundMax;
+                }
+            }
+            string? _tableName = await JS.InvokeAsync<string>(
                 "localStorageHelper.getItem",
                 "tableName");
             if (!string.IsNullOrEmpty(_tableName))
             {
-                tableName = _tableName; 
+                tableName = _tableName;
             }
 
             ValueAutoCompleteTableName = tableName;
@@ -594,13 +604,13 @@ randomWait : @randomWait  | timeCount: @timeCount
         }
     }
 
-    void Remove(ImageStepModel item , int indx)
+    void Remove(ImageStepModel item, int indx)
     {
         for (int i = 0; i < Items.Count; i++)
         {
             if (Items[i].NextStepEveryToStep > indx)
             {
-                Items[i].NextStepEveryToStep--;  
+                Items[i].NextStepEveryToStep--;
             }
 
             if (Items[i].NextStepFound > indx)
@@ -658,7 +668,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             var psi = new System.Diagnostics.ProcessStartInfo("shutdown", $"-s -f -t {diffSeconds}");
             psi.CreateNoWindow = true;
             psi.UseShellExecute = false;
-                System.Diagnostics.Process.Start(psi);
+            System.Diagnostics.Process.Start(psi);
 
             var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
             var BotName = Configuration["DiscordSettings:BotName"];
@@ -693,6 +703,11 @@ randomWait : @randomWait  | timeCount: @timeCount
         ImageSearch.Confidence = (((double)Confident) / (double)100);
         await JS.InvokeVoidAsync("unlockAudio");
 
+
+        await JS.InvokeVoidAsync(
+                "localStorageHelper.setItem",
+                "RoundMax",
+                RoundMax);
 
 
         int RandomIntBetween = 0;
