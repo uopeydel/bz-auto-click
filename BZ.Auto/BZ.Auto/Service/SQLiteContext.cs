@@ -156,6 +156,7 @@ namespace BZ.Auto.Service
 				await connection.OpenAsync();
 
 				var command = connection.CreateCommand();
+
 				//				command.CommandText = $@"
 				//SELECT  
 				//    t.BaseImage,
@@ -168,78 +169,38 @@ namespace BZ.Auto.Service
 				//    t.AfterClick,
 				//    t.ReCheckInterval,
 				//    t.NextStepFound,
-				//    t.NextStepNotFound,
-				//    -- ใช้ COALESCE เพื่อดึงค่าจากตารางจำลอง (extra) ถ้าฟิลด์ใน t ไม่มีอยู่จริง
-				//    COALESCE(extra.NextStepEveryToStep, 0) AS NextStepEveryToStep,
-				//    COALESCE(extra.NextStepEveryRound, 0) AS NextStepEveryRound,
+				//    t.NextStepNotFound, 
+				//    t.NextStepEveryToStep,
+				//    t.NextStepEveryRound,
 				//    t.Active,
+				//	t.IsClick,
 				//    t.FourceStopLoop
-				//FROM {tableNamee} t
-				//LEFT JOIN (
-				//    SELECT 0 AS NextStepEveryToStep, 0 AS NextStepEveryRound
-				//) extra ON 1=1;";
+				//FROM {tableNamee} t ";
 
-				command.CommandText = $@"
-SELECT  
-    t.BaseImage,
-    t.CurrentFromScreen,
-    t.TopLeftX,
-    t.TopLeftY,
-    t.BotRightX,
-    t.BotRightY,
-    t.Interval,
-    t.AfterClick,
-    t.ReCheckInterval,
-    t.NextStepFound,
-    t.NextStepNotFound, 
-    t.NextStepEveryToStep,
-    t.NextStepEveryRound,
-    t.Active,
-	t.IsClick,
-    t.FourceStopLoop
-FROM {tableNamee} t ";
+				command.CommandText = $"SELECT * FROM {tableNamee}";
 
 				using var reader = await command.ExecuteReaderAsync();
 
 				while (await reader.ReadAsync())
 				{
-
-					// ของเดิม (ผิด) -> ของใหม่ (ถูก)
-					var BaseImage = reader.GetString(0); // Index 0 = BaseImage
-					var CurrentFromScreenSmallToCompare = reader.GetString(1); // Index 1 = CurrentFromScreen
-					var TopLeftX = reader.GetInt32(2);
-					var TopLeftY = reader.GetInt32(3);
-					var BotRightX = reader.GetInt32(4);
-					var BotRightY = reader.GetInt32(5);
-					var Interval = reader.GetInt32(6);
-					var AfterClick = reader.GetInt32(7);
-					var ReCheckInterval = reader.GetInt32(8);
-					var NextStepFound = reader.GetInt32(9);
-					var NextStepNotFound = reader.GetInt32(10);
-					var NextStepEveryToStep = reader.GetInt32(11);
-					var NextStepEveryRound = reader.GetInt32(12);
-					var Active = reader.GetInt32(13) == 1;
-					var IsClick = reader.GetInt32(14) == 1;
-					var FourceStopLoop = reader.GetInt32(15) == 1;
-
 					list.Add(new ImageStepModel
 					{
-						BaseImage = BaseImage,
-						CurrentFromScreenSmallToCompare = CurrentFromScreenSmallToCompare,
-						TopLeftX = TopLeftX,
-						TopLeftY = TopLeftY,
-						BotRightX = BotRightX,
-						BotRightY = BotRightY,
-						Interval = Interval,
-						AfterClick = AfterClick,
-						ReCheckInterval = ReCheckInterval,
-						NextStepFound = NextStepFound,
-						NextStepNotFound = NextStepNotFound,
-						NextStepEveryToStep = NextStepEveryToStep,
-						NextStepEveryRound = NextStepEveryRound,
-						Active = Active,
-						IsClick = IsClick,
-						FourceStopLoop = FourceStopLoop
+						BaseImage = reader.GetStringOrDefault("BaseImage"),
+						CurrentFromScreenSmallToCompare = reader.GetStringOrDefault("CurrentFromScreen"),
+						TopLeftX = reader.GetInt32OrDefault("TopLeftX"),
+						TopLeftY = reader.GetInt32OrDefault("TopLeftY"),
+						BotRightX = reader.GetInt32OrDefault("BotRightX"),
+						BotRightY = reader.GetInt32OrDefault("BotRightY"),
+						Interval = reader.GetInt32OrDefault("Interval"),
+						AfterClick = reader.GetInt32OrDefault("AfterClick"),
+						ReCheckInterval = reader.GetInt32OrDefault("ReCheckInterval"),
+						NextStepFound = reader.GetInt32OrDefault("NextStepFound"),
+						NextStepNotFound = reader.GetInt32OrDefault("NextStepNotFound"),
+						NextStepEveryToStep = reader.GetInt32OrDefault("NextStepEveryToStep"),
+						NextStepEveryRound = reader.GetInt32OrDefault("NextStepEveryRound"),
+						Active = reader.GetBoolOrDefault("Active"),
+						IsClick = reader.GetBoolOrDefault("IsClick"),
+						FourceStopLoop = reader.GetBoolOrDefault("FourceStopLoop")
 					});
 				}
 
@@ -252,5 +213,58 @@ FROM {tableNamee} t ";
 		}
 
 
+	}
+
+	public static class SqliteDataReaderExtension
+	{
+		public static bool HasColumn(this SqliteDataReader reader, string columnName)
+		{
+			for (int i = 0; i < reader.FieldCount; i++)
+			{
+				if (reader.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+					return true;
+			}
+
+			return false;
+		}
+
+		public static string GetStringOrDefault(this SqliteDataReader reader, string columnName, string defaultValue = "")
+		{
+			if (!reader.HasColumn(columnName))
+				return defaultValue;
+
+			int index = reader.GetOrdinal(columnName);
+
+			if (reader.IsDBNull(index))
+				return defaultValue;
+
+			return reader.GetString(index);
+		}
+
+		public static int GetInt32OrDefault(this SqliteDataReader reader, string columnName, int defaultValue = 0)
+		{
+			if (!reader.HasColumn(columnName))
+				return defaultValue;
+
+			int index = reader.GetOrdinal(columnName);
+
+			if (reader.IsDBNull(index))
+				return defaultValue;
+
+			return reader.GetInt32(index);
+		}
+
+		public static bool GetBoolOrDefault(this SqliteDataReader reader, string columnName, bool defaultValue = false)
+		{
+			if (!reader.HasColumn(columnName))
+				return defaultValue;
+
+			int index = reader.GetOrdinal(columnName);
+
+			if (reader.IsDBNull(index))
+				return defaultValue;
+
+			return reader.GetInt32(index) == 1;
+		}
 	}
 }
