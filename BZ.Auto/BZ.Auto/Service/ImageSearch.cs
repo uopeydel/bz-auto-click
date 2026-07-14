@@ -193,45 +193,21 @@ UI เปลี่ยน shade นิด ๆ
 
 			#region TestRegion
 			// แคปทั้งจอ
-			var screenshot = screenShortBytes;// ScreenCapture.Capture(screenW, screenH);
+			var screenshot = screenShortBytes;
 
 			// แคป template จาก region ที่ระบุ
-			var template = imageBaseCurrentStep;// ScreenCapture.CaptureRegion(tx1, ty1, tx2, ty2);
+			var template = imageBaseCurrentStep;
 
-			var match = TemplateMatcher.FindTemplate(screenshot, template, threshold: Confidence);
+			// ค้นหาตำแหน่งภาพ (ใช้ค่าเกณฑ์ความเที่ยงตรงจากไอเทมหรือ Global)
+			double thresholdToCheck = imageStep.Confidence > 0 ? imageStep.Confidence : ImageSearch.Confidence;
+			var match = TemplateMatcher.FindTemplate(screenshot, template, threshold: thresholdToCheck);
+
 			var isFound = match != null;
 			if (isFound)
 			{
-				var diffX = Math.Abs(imageStep.TopLeftX - match.X);
-				var diffY = Math.Abs(imageStep.TopLeftY - match.Y);
-
-				Console.WriteLine();
-				Console.ForegroundColor = ConsoleColor.Green;
-				Console.WriteLine($"Diff X:{imageStep.TopLeftX - match.X}");
-				Console.WriteLine($"Diff Y:{imageStep.TopLeftY - match.Y}");
-				Console.ResetColor();
-				Console.WriteLine();
-				Console.WriteLine($"Confidence:{match.Confidence}");
-				Console.WriteLine($"Scale:{match.Scale}");
-				Console.WriteLine();
-
-				// config สำหรับตรวจความใกล้เคียง
-				// Confidence < 0.95 ความเหมือนน้อยกว่า 95 เปอเซน ไม่ผ่าน
-				// ถ้าตำแหน่งห่างกันเกิน 100 px ไม่ผ่าน
-				if (match.Confidence < Confidence && (diffX > 100 || diffY > 100))
+				// เช็คว่าความถูกต้อง (Confidence) ต้องสูงกว่าหรือเท่ากับเกณฑ์ที่กำหนดไว้
+				if (match.Confidence >= thresholdToCheck)
 				{
-					imageStep.IsFound = false;
-
-					imageStep.Confidence = match.Confidence;
-					imageStep.Scale = match.Scale;
-
-					imageStep.FoundTopLeftX = match.X;
-					imageStep.FoundTopLeftY = match.Y;
-					imageStep.FoundBotRightX = match.X + match.Width;
-					imageStep.FoundBotRightY = match.Y + match.Height;
-				}
-				else
-				{ 
 					imageStep.IsFound = true;
 					imageStep.FoundTopLeftX = match.X;
 					imageStep.FoundTopLeftY = match.Y;
@@ -241,15 +217,24 @@ UI เปลี่ยน shade นิด ๆ
 					imageStep.Confidence = match.Confidence;
 					imageStep.Scale = match.Scale;
 
+					// ดึงภาพขนาดเล็กเฉพาะจุดที่เจอจริง ๆ มาเก็บไว้ดู/เปรียบเทียบ
 					var imgCaptureRegionFound = ImageCapture.CaptureRegion(
 						imageStep.FoundTopLeftX,
 						imageStep.FoundTopLeftY,
 						imageStep.FoundBotRightX,
 						imageStep.FoundBotRightY
 					);
-					imageStep.CurrentFromScreenSmallToCompare = Convert.ToBase64String(imgCaptureRegionFound); 
+					imageStep.CurrentFromScreenSmallToCompare = Convert.ToBase64String(imgCaptureRegionFound);
 				}
-				//imageStep.CurrentFromScreenSmallToCompare
+				else
+				{
+					// หากเจอแต่ความชัดเจนต่ำกว่าเกณฑ์ ถือว่าหาไม่เจอ
+					imageStep.IsFound = false;
+				}
+			}
+			else
+			{
+				imageStep.IsFound = false;
 			}
 
 			return imageStep;
