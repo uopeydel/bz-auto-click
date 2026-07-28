@@ -209,10 +209,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                 <div class="modal-body p-0">
                     <img src="@currentImage"
                          style="
-                                                                                             display: block;
-                                                                                             width: 600px;
-                                                                                             max-height: 800px;
-                                                                                             object-fit: contain;" />
+                                                                                                 display: block;
+                                                                                                 width: 600px;
+                                                                                                 max-height: 800px;
+                                                                                                 object-fit: contain;" />
                 </div>
 
                 <div class="modal-footer justify-content-center py-2">
@@ -359,7 +359,7 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                 <!-- bool -->
                 <td class="text-center">
-                    <input type="checkbox" disabled="@isLockSave"
+                    <input type="checkbox" disabled="@isLockSave" 
                            checked="@pair.item.Active"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.Active), e.Value)" />
                     <input type="checkbox" disabled="@isLockSave"
@@ -651,6 +651,7 @@ randomWait : @randomWait  | timeCount: @timeCount
     }
 
     int NextMinuteShutdown = 120;
+    static DateTime targetTimeFourceStop = DateTime.Now.AddDays(10);
     async Task OnSetShutdown()
     {
 
@@ -659,6 +660,8 @@ randomWait : @randomWait  | timeCount: @timeCount
             DateTime now = DateTime.Now;
             DateTime targetTime = now.AddMinutes(NextMinuteShutdown); // เวลาที่ต้องการเทียบ
 
+            targetTimeFourceStop = targetTime;
+            targetTimeFourceStop = targetTimeFourceStop.AddMinutes(-10);
 
             int diffSeconds = NextMinuteShutdown * 60;
 
@@ -732,20 +735,6 @@ randomWait : @randomWait  | timeCount: @timeCount
             {
                 await InvokeAsync(StateHasChanged);
 
-
-                //ปิดเครื่องนอน วอจบแล้ว
-                if (DateTime.Now.Hour > 22)
-                {
-                    //var psi = new ProcessStartInfo("shutdown", "/s /t 0");
-                    //psi.CreateNoWindow = true;
-                    //psi.UseShellExecute = false;
-                    //Process.Start(psi);
-                    // await OnStopAutoAsync();
-
-
-                }
-
-
                 if (Items[processNumber].FourceStopLoop == true)
                 {
                     var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
@@ -761,6 +750,23 @@ randomWait : @randomWait  | timeCount: @timeCount
                     processNumber = 0;
                     await OnStopAutoAsync();
                     await JS.InvokeVoidAsync("playJingle", "sounds/danger-alert.mp3", _currentVolumn.Value);
+                    return;
+                }
+
+                if (targetTimeFourceStop <= DateTime.Now)
+                {
+                    var discordUrl = Configuration["DiscordSettings:WebhookUrl"];
+                    var BotName = Configuration["DiscordSettings:BotName"];
+
+                    await DiscordNotificationService.SendNotification(
+                        discordUrl,
+                        BotName,
+                        RoundRunning,
+                        "อีก 10 นาทีถึงเวลา shut down");
+                    RoundRunning = 0;
+                    processRecheckIfNotFound = 0;
+                    processNumber = 0;
+                    await OnStopAutoAsync(); 
                     return;
                 }
 
