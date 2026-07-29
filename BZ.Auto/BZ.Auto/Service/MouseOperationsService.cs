@@ -87,10 +87,11 @@ namespace BZ.Auto.Service
 		public static async Task LeftMouseClick()
 		{
 			MouseEvent(MouseEventFlags.LeftDown);
-			await Task.Delay(GenerateRandomMillisecond(1, 2));
+			await Task.Delay(GenerateRandomMillisecond(0.10, 0.18)); 
+			MouseEvent(MouseEventFlags.LeftUp);
+
 			//  SystemSounds.Beep.Play();
 			//(new System.Media.SoundPlayer(@"D:\Code\Git\AutoMouse\AutoCursorMoveStep\AutoCursorMoveStep\sound\click.wav")).Play(); ;
-			MouseEvent(MouseEventFlags.LeftUp);
 		}
 
 		public static void MouseEventWheelDown()
@@ -107,25 +108,52 @@ namespace BZ.Auto.Service
 				;
 		}
 
-		public static int GenerateRandomMillisecond(int start, int end)
+		/// <summary>
+		/// Generate random milliseconds from a second range.
+		/// </summary>
+		/// <param name="startSecond">
+		/// Start time in seconds.
+		/// Example: 0.10
+		/// </param>
+		/// <param name="endSecond">
+		/// End time in seconds.
+		/// Example: 0.18
+		/// </param>
+		/// <param name="stepSecond">
+		/// Increment step in seconds.
+		/// Example:
+		/// 0.01 = 10 ms
+		/// 0.05 = 50 ms
+		/// 0.10 = 100 ms
+		/// </param>
+		/// <returns>Random milliseconds.</returns>
+		/// <example>
+		/// GenerateRandomMillisecond(0.10, 0.18, 0.01)
+		/// Possible results:
+		/// 100, 110, 120, ..., 180
+		///
+		/// GenerateRandomMillisecond(0.08, 0.25, 0.01)
+		/// Possible results:
+		/// 80, 90, 100, ..., 250
+		/// </example>
+		public static int GenerateRandomMillisecond(
+			double startSecond,
+			double endSecond,
+			double stepSecond = 0.01)
 		{
-			if (start > end)
-			{
-				throw new ArgumentException("Start value must be less than or equal to end value.");
-			}
+			if (startSecond > endSecond)
+				throw new ArgumentException("startSecond must be less than or equal to endSecond.");
 
-			Random random = new Random();
-			double randomRange = (double)(end - start);
-			double randomSecond = 0.0;
+			if (stepSecond <= 0)
+				throw new ArgumentException("stepSecond must be greater than zero.");
 
-			while (randomSecond % 0.3 != 0)
-			{
-				randomSecond = random.NextDouble() * randomRange;
-				randomSecond += start;
-			}
+			int count = (int)Math.Round((endSecond - startSecond) / stepSecond);
 
-			int randomMillisecond = (int)randomSecond * 1000;
-			return randomMillisecond;
+			int index = Random.Shared.Next(count + 1);
+
+			double second = startSecond + (index * stepSecond);
+
+			return (int)Math.Round(second * 1000);
 		}
 
 

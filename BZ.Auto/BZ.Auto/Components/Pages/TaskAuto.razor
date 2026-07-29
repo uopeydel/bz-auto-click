@@ -817,7 +817,8 @@ randomWait : @randomWait  | timeCount: @timeCount
 
                 bool isStillWaitForInterval = false;
                 var beforeClickInterval = Items[processNumber].Interval;
-                if (beforeClickInterval > 0)
+                // ตั้งไว้เผื่ออยากให้จำนวนวิเยอะๆถึงทำการ random adjust
+                if (beforeClickInterval > 5)
                 {
                     isStillWaitForInterval = timeCount <
                     MouseClickHelper.ConvertSecondToMilisecond(beforeClickInterval) +
@@ -876,6 +877,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                 if (isFound && itemConfidenceOverSetting)
                 {
 
+                    Console.WriteLine("Items IsClick {0}", Items[processNumber].IsClick);
                     if (Items[processNumber].IsClick)
                     {
                         if (Items[processNumber].ComboNotFound >= 3)
@@ -890,7 +892,7 @@ randomWait : @randomWait  | timeCount: @timeCount
                         var current = MouseOperationsService.GetCursorPosition();
                         //MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y, speedPxPerSec: 2500);
 
-                        await Task.Delay(30);
+                        
                         MouseMover.MoveAbsolute(CursorPosition.X, CursorPosition.Y);
                         // // // MouseMover.MoveSmooth(current.X, current.Y, CursorPosition.X, CursorPosition.Y,
                         // // //    speedPxPerSec: 50000, smoothness: 6);
@@ -902,8 +904,25 @@ randomWait : @randomWait  | timeCount: @timeCount
                         // await Task.Delay(ranDomBeforeClick);
                         // Console.ResetColor();
 
+                        Console.WriteLine("Items LeftMouseClick");
                         // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
+                        @* await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18)); *@
                         await MouseOperationsService.LeftMouseClick();
+                       
+                        if (Items[processNumber].AfterClick > 1 && Items[processNumber].Interval > 1)
+                        {
+                            await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
+                            await MouseOperationsService.LeftMouseClick();
+                            await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
+                        }
+/*
+                        if (processNumber == 14)
+                        {
+                            await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
+                            await MouseOperationsService.LeftMouseClick();
+                            await OnStopAutoAsync(); Console.WriteLine("OnStopAutoAsync");
+                        }
+                        */
                         if (Items[processNumber].AfterClick > 0)
                         {
                             await Task.Delay(MouseClickHelper.ConvertSecondToMilisecond(Items[processNumber].AfterClick));
@@ -912,8 +931,9 @@ randomWait : @randomWait  | timeCount: @timeCount
                     }
                     // ถ้ามีการตั้ง เลขรอบที่จะไปที่อื่น
                     // และยังไม่ได้ random adjust round
+                    // ตั้ง NextStepEveryRound > 5 ไว้เผื่อจำนวนรอบน้อยๆ อยาก fix รอบ
                     if (Items[processNumber].NextStepEveryRoundRandomAdjustRound == 0
-                            && Items[processNumber].NextStepEveryRound > 0)
+                            && Items[processNumber].NextStepEveryRound > 5)
                     {
                         // ทำการ random adjust round max
                         Items[processNumber].NextStepEveryRoundRandomAdjustRound =
