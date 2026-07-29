@@ -40,7 +40,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Set Shutdown</label>
             <button type="button" class="btn btn-danger btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnSetShutdown()">
+                    disabled="@(isStartLoop || HookService.IsHookActive )" @onclick="async () => await OnSetShutdown()">
                 ⏰ Set Shutdown
             </button>
         </div>
@@ -72,7 +72,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Add Row</label>
             <button type="button" class="btn btn-primary btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="() => AddRow()">
+                    disabled="@(isStartLoop || HookService.IsHookActive )" @onclick="() => AddRow()">
                 ➕ Add
             </button>
         </div>
@@ -81,7 +81,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Start</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
-                    disabled="@((isStartLoop || HookService.IsActive || !isLockSave))" @onclick="async () => await OnStartAutoAsync()">
+                    disabled="@((isStartLoop || HookService.IsHookActive  || !isLockSave))" @onclick="async () => await OnStartAutoAsync()">
                 🔄 Start
             </button>
         </div>
@@ -99,7 +99,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Load</label>
             <button type="button" class="btn btn-primary btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive || isLockSave)" @onclick="async () => await OnLoadAsync()">
+                    disabled="@(isStartLoop || HookService.IsHookActive  || isLockSave)" @onclick="async () => await OnLoadAsync()">
                 📂 Load
             </button>
         </div>
@@ -108,7 +108,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Save</label>
             <button type="button" class="btn btn-success btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive || isLockSave)" @onclick="async () => await OnSaveAsync()">
+                    disabled="@(isStartLoop || HookService.IsHookActive  || isLockSave)" @onclick="async () => await OnSaveAsync()">
                 💾 Save
             </button>
         </div>
@@ -116,7 +116,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Lock Save</label>
             <button type="button" class="btn btn-danger btn-sm" style="width:100px"
-                    disabled="@(isStartLoop || HookService.IsActive)" @onclick="async () => await OnLockSaveAsync()">
+                    disabled="@(isStartLoop || HookService.IsHookActive )" @onclick="async () => await OnLockSaveAsync()">
                 🔒 Lock Save
             </button>
         </div>
@@ -164,7 +164,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <!-- Start -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Start</label>
-            <button type="button" class="btn btn-success btn-sm" style="width:100px" disabled="@(HookService.IsActive || isStartLoop)"
+            <button type="button" class="btn btn-success btn-sm" style="width:100px" disabled="@(HookService.IsHookActive  || isStartLoop)"
                     @onclick="async () => await StartHook()">
                 ▶ Hook
             </button>
@@ -173,7 +173,7 @@ randomWait : @randomWait  | timeCount: @timeCount
         <!-- Stop -->
         <div class="d-flex flex-column align-items-center">
             <label class="form-label small mb-1">Stop</label>
-            <button type="button" class="btn btn-danger btn-sm" style="width:100px" disabled="@(!HookService.IsActive || isStartLoop)"
+            <button type="button" class="btn btn-danger btn-sm" style="width:100px" disabled="@(!HookService.IsHookActive  || isStartLoop)"
                     @onclick="() => StopHook()">
                 ⏹ Release
             </button>
@@ -251,6 +251,7 @@ randomWait : @randomWait  | timeCount: @timeCount
             <th>NextStep (Every ToStep)</th>
             <th>NextStep (Every Round)</th>
             <th>Active</th>
+            <th>DoubleClick</th>
             <th>FourceStopLoop</th>
         </tr>
     </thead>
@@ -365,6 +366,14 @@ randomWait : @randomWait  | timeCount: @timeCount
                     <input type="checkbox" disabled="@isLockSave"
                            checked="@pair.item.IsClick"
                            @onchange="e => OnChanged(pair.item, nameof(pair.item.IsClick), e.Value)" />
+
+                </td>
+
+                <!-- bool -->
+                <td class="text-center"> 
+                    <input type="checkbox" disabled="@isLockSave"
+                           checked="@pair.item.IsDoubleClick"
+                           @onchange="e => OnChanged(pair.item, nameof(pair.item.IsDoubleClick), e.Value)" />
 
                 </td>
 
@@ -909,11 +918,10 @@ randomWait : @randomWait  | timeCount: @timeCount
                         @* await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18)); *@
                         await MouseOperationsService.LeftMouseClick();
                        
-                        if (Items[processNumber].AfterClick > 1 && Items[processNumber].Interval > 1)
+                        if ((Items[processNumber].AfterClick > 1 && Items[processNumber].Interval > 1) || Items[processNumber].IsDoubleClick)
                         {
                             await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
                             await MouseOperationsService.LeftMouseClick();
-                            await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
                         }
 /*
                         if (processNumber == 14)
@@ -1204,6 +1212,9 @@ randomWait : @randomWait  | timeCount: @timeCount
                 case nameof(ImageStepModel.IsClick):
                     item.IsClick = Convert.ToBoolean(value);
                     break;
+                case nameof(ImageStepModel.IsDoubleClick):
+                    item.IsDoubleClick = Convert.ToBoolean(value);
+                    break; 
                 case nameof(ImageStepModel.FourceStopLoop):
                     item.FourceStopLoop = Convert.ToBoolean(value);
                     break;

@@ -9,26 +9,26 @@
 
 <div class="d-flex flex-wrap align-items-center gap-2 mb-3">
 
-    <button type="button" class="btn btn-primary" disabled="@(HookService.IsActive)"
+    <button type="button" class="btn btn-primary" disabled="@(HookService.IsHookActive)"
             @onclick="() => AddRow()">
         ➕ Add
     </button>
 
-    <button class="btn btn-success" @onclick="async () => await StartHook()" disabled="@HookService.IsActive">
+    <button class="btn btn-success" @onclick="async () => await StartHook()" disabled="@HookService.IsHookActive">
         ▶ Start
     </button>
 
-    <button class="btn btn-danger" @onclick="StopHook" disabled="@(!HookService.IsActive)">
+    <button class="btn btn-danger" @onclick="StopHook" disabled="@(!HookService.IsHookActive)">
         ⏹ Stop
     </button>
 
     <button type="button" class="btn btn-primary"
-            @onclick="async () => await OnLoadAsync()" disabled="@(HookService.IsActive)">
+            @onclick="async () => await OnLoadAsync()" disabled="@(HookService.IsHookActive)">
         📂 Load
     </button>
 
     <button type="button" class="btn btn-success"
-            @onclick="async () => await OnSaveAsync()" disabled="@(HookService.IsActive)">
+            @onclick="async () => await OnSaveAsync()" disabled="@(HookService.IsHookActive)">
         💾 Save
     </button>
 
@@ -66,7 +66,7 @@
 
 </div>
 
-<p>Status: <strong>@(HookService.IsActive ? "🟢 Active" : "🔴 Inactive")</strong></p>
+<p>Status: <strong>@(HookService.IsHookActive ? "🟢 Active" : "🔴 Inactive")</strong></p>
 
 <br />
 <table class="table table-bordered">
@@ -316,7 +316,8 @@
             NextStepFound =0,
             NextStepNotFound = 0,
             Active = true,
-            IsClick = true
+            IsClick = true,
+            IsDoubleClick = false
         }
     };
 
@@ -440,7 +441,8 @@
             NextStepNotFound = 0,
             Active = true,
             IsClick = true,
-            FourceStopLoop = false
+            FourceStopLoop = false,
+            IsDoubleClick = false
         });
     }
     private async Task StartHook()

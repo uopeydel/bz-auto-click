@@ -56,15 +56,15 @@ public class MouseHookService : IDisposable
 	private LowLevelProc? _proc;
 	private Thread? _hookThread;
 	private uint _hookThreadId;
-	private bool _isActive = false;
+	private bool _isHookActive = false;
 
 	public event Action<int, int>? OnSpacePressed;
-	public bool IsActive => _isActive;
+	public bool IsHookActive => _isHookActive;
 
 	// ── Start ──────────────────────────────────────────────
 	public void Start()
 	{
-		if (_isActive) return;
+		if (_isHookActive) return;
 
 		_proc = KeyboardHookCallback;
 
@@ -103,19 +103,19 @@ public class MouseHookService : IDisposable
 
 		// รอให้ thread id พร้อม
 		Thread.Sleep(100);
-		_isActive = true;
+		_isHookActive = true;
 	}
 
 	// ── Stop ───────────────────────────────────────────────
 	public void Stop()
 	{
-		if (!_isActive) return;
+		if (!_isHookActive) return;
 
 		// ส่ง WM_QUIT เพื่อหยุด Message Loop
 		PostThreadMessage(_hookThreadId, WM_QUIT, IntPtr.Zero, IntPtr.Zero);
 
 		_hookThread?.Join(1000);
-		_isActive = false;
+		_isHookActive = false;
 	}
 
 	// ── Callback ───────────────────────────────────────────

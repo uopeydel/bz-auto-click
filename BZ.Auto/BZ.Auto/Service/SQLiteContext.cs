@@ -74,6 +74,7 @@ namespace BZ.Auto.Service
     NextStepEveryRound INTEGER,
     Active INTEGER,
 	IsClick  INTEGER,
+	IsDoubleClick  INTEGER,
     FourceStopLoop INTEGER
 );";
 
@@ -102,6 +103,7 @@ namespace BZ.Auto.Service
             NextStepEveryRound,
             Active,
 			IsClick,
+			IsDoubleClick,
 			FourceStopLoop 
         )
         VALUES (
@@ -120,6 +122,7 @@ namespace BZ.Auto.Service
             @NextStepEveryRound,
             @Active,
 			@IsClick,
+			@IsDoubleClick,
 			@FourceStopLoop  
         );
     ";
@@ -139,6 +142,8 @@ namespace BZ.Auto.Service
 				command.Parameters.AddWithValue("@NextStepEveryRound", models[i].NextStepEveryRound);
 				command.Parameters.AddWithValue("@Active", models[i].Active ? 1 : 0);
 				command.Parameters.AddWithValue("@IsClick", models[i].IsClick ? 1 : 0);
+				command.Parameters.AddWithValue("@IsDoubleClick", models[i].IsDoubleClick ? 1 : 0);
+				
 
 				command.Parameters.AddWithValue("@FourceStopLoop", models[i].FourceStopLoop ? 1 : 0);
 
@@ -200,6 +205,7 @@ namespace BZ.Auto.Service
 						NextStepEveryRound = reader.GetInt32OrDefault("NextStepEveryRound"),
 						Active = reader.GetBoolOrDefault("Active"),
 						IsClick = reader.GetBoolOrDefault("IsClick"),
+						IsDoubleClick = reader.GetBoolOrDefault("IsDoubleClick"),
 						FourceStopLoop = reader.GetBoolOrDefault("FourceStopLoop")
 					});
 				}
