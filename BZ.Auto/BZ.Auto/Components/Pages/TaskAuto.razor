@@ -917,11 +917,17 @@ randomWait : @randomWait  | timeCount: @timeCount
                         // MouseOperationsService.SetCursorPosition(CursorPosition.X, CursorPosition.Y);
                         @* await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18)); *@
                         await MouseOperationsService.LeftMouseClick();
-                       
-                        if ((Items[processNumber].AfterClick > 1 && Items[processNumber].Interval > 1) || Items[processNumber].IsDoubleClick)
+
+                        if (  Items[processNumber].IsDoubleClick)
                         {
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine(" ");
+                            Console.WriteLine("Items IsDoubleClick");
+                            Console.WriteLine(" ");
+                            Console.ResetColor();
                             await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
                             await MouseOperationsService.LeftMouseClick();
+                            await Task.Delay(MouseOperationsService.GenerateRandomMillisecond(0.10, 0.18));
                         }
 /*
                         if (processNumber == 14)
