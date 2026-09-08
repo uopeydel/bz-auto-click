@@ -512,10 +512,9 @@ randomWait : @randomWait  | timeCount: @timeCount
     record VolumeStep(string Icon, string Desc, double Value);
 
     private readonly VolumeStep[] _steps =
-    [
-        new("🔊", "100%",  1),
+    [   new("🔈", "0%",   0),
         new("🔉", "50%", 0.5),
-        new("🔈", "0%",   0),
+        new("🔊", "100%",  1),
     ];
 
     private int _idx = 0;
